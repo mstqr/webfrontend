@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSTQR Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <!-- Load admin.js after Firebase is loaded -->
+    <script src="../js/admin.js"></script>
+
+</head>
+<body class="admin-body">
+    <div class="admin-dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/logo.png" alt="MSTQR Logo" class="logo">
+                <h2>MSTQR Admin</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#overview" onclick="showSection('overview')" class="active">
+                            <i class="fas fa-home"></i> Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#residents" onclick="showSection('residents')">
+                            <i class="fas fa-users"></i> Residents
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#passes" onclick="showSection('passes')">
+                            <i class="fas fa-id-card"></i> Passes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#scanners" onclick="showSection('scanners')">
+                            <i class="fas fa-qrcode"></i> Scanners
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="content-header">
+                <div class="header-left">
+                    <h1>Welcome Back</h1>
+                    <p class="current-date"></p>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                </div>
+            </header>
+
+            <section id="overview" class="section-content">
+                <div class="summary-cards">
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #e3f2fd;">
+                            <i class="fas fa-qrcode" style="color: #1976d2;"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Scans Today</h3>
+                            <p class="card-value" id="totalScansToday">0</p>
+                            <p class="card-change positive">+12.5% <span>vs yesterday</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #e8f5e9;">
+                            <i class="fas fa-users" style="color: #388e3c;"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Active Residents</h3>
+                            <p class="card-value" id="activeResidents">0</p>
+                            <p class="card-change positive">+3.2% <span>vs last week</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #fff3e0;">
+                            <i class="fas fa-id-card" style="color: #f57c00;"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Active Passes</h3>
+                            <p class="card-value" id="activePasses">0</p>
+                            <p class="card-change positive">+5.8% <span>vs last month</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #fce4ec;">
+                            <i class="fas fa-exclamation-triangle" style="color: #c2185b;"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Pending Approvals</h3>
+                            <p class="card-value" id="pendingApprovals">0</p>
+                            <p class="card-change negative">-2.4% <span>vs yesterday</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="chart-card">
+                        <h3>Scanner Activity</h3>
+                        <div class="chart" id="scannerActivityChart">
+                            <!-- Chart will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="recent-activity-card">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-list" id="recentActivity">
+                            <!-- Activity items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section id="residents">
+                <div class="section-header">
+                    <h2>Resident Management</h2>
+                    <button class="btn" onclick="addResident()">Add New Resident</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="residentsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Unit</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="passes" style="display: none;">
+                <div class="section-header">
+                    <h2>Pass Management</h2>
+                    <button class="btn" onclick="addPass()">Add New Pass</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="passesTable">
+                        <thead>
+                            <tr>
+                                <th>Pass ID</th>
+                                <th>Resident</th>
+                                <th>Type</th>
+                                <th>Valid Until</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="scanners" style="display: none;">
+                <div class="section-header">
+                    <h2>Scanner Management</h2>
+                    <button class="btn" onclick="addScanner()">Add New Scanner</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="scannersTable">
+                        <thead>
+                            <tr>
+                                <th>Scanner ID</th>
+                                <th>Location</th>
+                                <th>Last Active</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
