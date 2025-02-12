@@ -1,0 +1,354 @@
+/* Page Content Styles */
+.page-content {
+    padding: 120px 2rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Contact Page Styles */
+.contact-section {
+    text-align: center;
+}
+
+.section-description {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.contact-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin-top: 3rem;
+    text-align: left;
+}
+
+.contact-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-info {
+    background-color: var(--primary-light);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.info-item {
+    margin-bottom: 2rem;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-item h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+/* Privacy Policy Styles */
+.privacy-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.privacy-section h1 {
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+}
+
+.last-updated {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.policy-section {
+    margin-bottom: 3rem;
+}
+
+.policy-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+}
+
+.policy-section h3 {
+    color: var(--primary-dark);
+    margin: 1.5rem 0 1rem;
+    font-size: 1.3rem;
+}
+
+.policy-section p {
+    margin-bottom: 1rem;
+}
+
+.policy-section ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-top: 1rem;
+}
+
+.policy-section li {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+/* Get Started Styles */
+.get-started-section {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.get-started-section h1 {
+    font-size: 3rem;
+    color: var(--primary-dark);
+    margin-bottom: 0.5rem;
+}
+
+.get-started-section h1 sup {
+    font-size: 1rem;
+    color: var(--primary-color);
+    top: -1.5em;
+}
+
+.free-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.app-stores {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0 3rem;
+}
+
+.store-button img {
+    height: 120px;
+    transition: transform 0.3s ease;
+    margin: 0 10px;
+}
+
+.store-button:hover img {
+    transform: translateY(-2px);
+}
+
+.get-started-container {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 3rem;
+    text-align: left;
+    margin-top: 2rem;
+}
+
+.get-started-form {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.get-started-form h2 {
+    color: var(--primary-dark);
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.info-card {
+    background-color: var(--primary-light);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.info-card h3 {
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.info-card ul {
+    list-style: none;
+}
+
+.info-card li {
+    margin-bottom: 0.8rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.info-card li::before {
+    content: "✓";
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+}
+
+.required {
+    color: var(--danger);
+    margin-left: 0.2rem;
+}
+
+@media (max-width: 768px) {
+    .get-started-container {
+        grid-template-columns: 1fr;
+    }
+
+    .app-stores {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .get-started-section h1 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Account Deletion Styles */
+.deletion-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.deletion-section h1 {
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+}
+
+.deletion-content {
+    margin-top: 3rem;
+}
+
+.deletion-info,
+.deletion-form,
+.deletion-help {
+    background-color: var(--background-light);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.deletion-form {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+}
+
+.deletion-info ul,
+.deletion-help ul {
+    list-style-type: none;
+    margin-top: 1rem;
+}
+
+.deletion-info li {
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.deletion-info li::before {
+    content: "•";
+    color: var(--danger);
+    position: absolute;
+    left: 0;
+}
+
+.danger-btn {
+    background-color: var(--danger);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.danger-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.deletion-help li {
+    margin-bottom: 0.5rem;
+}
+
+.deletion-help a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.deletion-help a:hover {
+    text-decoration: underline;
+}
+
+/* Primary Button Style */
+.primary-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.primary-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .contact-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-content {
+        padding: 100px 1rem 2rem;
+    }
+    
+    .privacy-section h1,
+    .deletion-section h1 {
+        font-size: 2rem;
+    }
+    
+    .policy-section h2 {
+        font-size: 1.5rem;
+    }
+}

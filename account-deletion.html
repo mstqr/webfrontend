@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self' https://api.emailjs.com https://*.googleapis.com https://*.firebaseio.com;
+    script-src 'self' 'unsafe-inline' https://*.gstatic.com https://*.firebaseapp.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+">    <title>Account Deletion - MSTQR</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/additional-styles.css">
+</head>
+<body>
+    <header>
+        <nav class="main-nav">
+            <a href="index.html" class="logo">
+                <img src="assets/mstqr-logo-all-green.png" alt="MSTQR Logo">
+            </a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="account-deletion.html" class="active">Delete Account</a></li>
+                <li><a href="privacy-policy.html">Privacy Policy</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="page-content">
+        <section class="deletion-section">
+            <h1>Account Deletion</h1>
+            <p class="section-description">We respect your right to data privacy. Follow the steps below to delete your account.</p>
+
+            <div class="deletion-content">
+                <div class="deletion-info">
+                    <h2>Before You Delete</h2>
+                    <p>Please note that account deletion:</p>
+                    <ul>
+                        <li>Is permanent and cannot be undone</li>
+                        <li>Will remove all your personal data from our systems</li>
+                        <li>May take up to 30 days to complete</li>
+                        <li>Will cancel any active subscriptions</li>
+                    </ul>
+                </div>
+
+                <div class="deletion-form">
+                    <h2>Request Account Deletion</h2>
+                    <form id="deletionForm">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reason">Reason for Deletion (Optional)</label>
+                            <select id="reason" name="reason">
+                                <option value="">Select a reason</option>
+                                <option value="no-longer-needed">No longer needed</option>
+                                <option value="privacy-concerns">Privacy concerns</option>
+                                <option value="switching-service">Switching to another service</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                        </div>
+                        <button type="submit" class="danger-btn">Request Account Deletion</button>
+                    </form>
+                </div>
+
+                <div class="deletion-help">
+                    <h2>Need Help?</h2>
+                    <p>If you're having trouble deleting your account or have questions, please:</p>
+                    <ul>
+                        <li>Contact our support team at <a href="mailto:info@mstqr.com">info@mstqr.com</a></li>
+                        <li>Visit our <a href="contact.html">Contact Page</a></li>
+                        <li>Review our <a href="privacy-policy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <p>Smart solutions for modern communities</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="account-deletion.html">Account Deletion</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 MSTQR. All rights reserved.</p>
+        </div>
+    </footer>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -25,7 +25,14 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Content-Security-Policy', "default-src 'self' https://*.gstatic.com https://*.firebaseapp.com https://*.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.gstatic.com https://*.firebaseapp.com https://cdn.jsdelivr.net");
+    res.setHeader("Content-Security-Policy", 
+        "default-src 'self' https://*.gstatic.com https://*.firebaseapp.com https://*.googleapis.com; " +
+        "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com; " +
+        "img-src 'self' data: https:; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.gstatic.com https://*.firebaseapp.com https://cdn.jsdelivr.net https://cdn.emailjs.com;"
+    );
     next();
 });
 
