@@ -1,9 +1,10 @@
 // Helper function to send emails using EmailJS
+emailjs.init("eqniDTOTImEKBZiz7");
 async function sendEmail(formData) {
     try {
         const response = await emailjs.send(
-            'service_l12hcln',
-            'template_h4nzkdg',
+            'service_l12hcln',    // Your service ID
+            'template_h4nzkdg',   // Your template ID
             {
                 to_name: 'MSTQR Team',
                 from_name: formData.name || formData.contactName,
