@@ -99,6 +99,65 @@ body {
 
 .admin-btn:hover {
     background-color: var(--primary-dark);
+}
+
+/* Mobile Navigation */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    cursor: pointer;
+}
+
+.menu-toggle span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background-color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+@media screen and (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+
+    .main-nav ul {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background-color: var(--white);
+        padding: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        gap: 0;
+    }
+
+    .main-nav ul.active {
+        display: flex;
+    }
+
+    .main-nav ul li {
+        width: 100%;
+    }
+
+    .main-nav ul li a {
+        display: block;
+        padding: 1rem 2rem;
+    }
+
+    .main-nav ul li a:hover {
+        background-color: var(--primary-light);
+    }
+
+    .main-nav ul li a::after {
+        display: none;
+    }
+}
     border-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(88, 166, 92, 0.2);
