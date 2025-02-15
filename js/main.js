@@ -29,24 +29,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const navMenu = document.querySelector('.main-nav ul');
 
     if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+        menuToggle.addEventListener('click', function() {
             navMenu.classList.toggle('active');
             menuToggle.classList.toggle('active');
+            console.log('Menu toggled');
         });
 
         // Close menu when clicking outside
         document.addEventListener('click', function(event) {
-            if (!event.target.closest('.main-nav') || event.target.closest('.main-nav a')) {
+            const isClickInsideMenu = event.target.closest('.main-nav ul');
+            const isClickOnToggle = event.target.closest('.menu-toggle');
+            
+            if (!isClickInsideMenu && !isClickOnToggle && navMenu.classList.contains('active')) {
                 navMenu.classList.remove('active');
                 menuToggle.classList.remove('active');
             }
         });
 
         // Close menu when clicking on a link
-        navMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
+        const menuLinks = navMenu.querySelectorAll('a');
+        menuLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
                 navMenu.classList.remove('active');
                 menuToggle.classList.remove('active');
             });
