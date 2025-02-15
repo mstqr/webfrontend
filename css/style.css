@@ -40,6 +40,7 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
+    height: 80px;
 }
 
 .logo {
@@ -109,6 +110,8 @@ body {
     width: 30px;
     height: 21px;
     cursor: pointer;
+    z-index: 1001;
+    position: relative;
 }
 
 .menu-toggle span {
@@ -117,6 +120,19 @@ body {
     width: 100%;
     background-color: var(--text-color);
     transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
 }
 
 @media screen and (max-width: 768px) {
@@ -163,14 +179,23 @@ body {
     box-shadow: 0 4px 12px rgba(88, 166, 92, 0.2);
 }
 
+/* Main Content */
+main {
+    padding-top: 40px; /* Height of the fixed header */
+}
+
 /* Hero Section */
 .hero {
     background: linear-gradient(135deg, var(--primary-light) 0%, #ffffff 100%);
-    padding: 8rem 2rem 6rem;
+    padding: 6rem 2rem;
     text-align: center;
     color: var(--text-color);
     position: relative;
     overflow: hidden;
+    min-height: calc(100vh - 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hero::before {
@@ -198,6 +223,29 @@ body {
     margin-bottom: 1.5rem;
     color: var(--primary-dark);
     line-height: 1.2;
+}
+
+@media screen and (max-width: 768px) {
+    .hero {
+        padding: 4rem 1.5rem;
+        min-height: calc(100vh - 80px);
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .hero-content {
+        width: 100%;
+        padding: 0 0.5rem;
+    }
 }
 
 .hero p {
