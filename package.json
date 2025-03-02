@@ -10,7 +10,8 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "firebase": "^9.17.1"
+    "firebase": "^9.17.1",
+    "http-proxy-middleware": "^3.0.3"
   },
   "devDependencies": {
     "browser-sync": "^3.0.3",
