@@ -394,11 +394,12 @@
                 throw new Error('No authentication token available');
             }
 
-            const params = new URLSearchParams();
-            params.append('page', Math.max(0, page).toString());
-            params.append('size', Math.max(1, size).toString());
-            params.append('sort', 'scannedAt,desc');
-            
+            const params = new URLSearchParams({
+                page: page.toString(),
+                size: size.toString(),
+                sort: 'scannedAt,desc'
+            });
+
             if (hostId) {
                 params.append('hostId', hostId.toString());
             }
@@ -1040,45 +1041,40 @@
     }
 
     // Function to update recent activity list
-    function updateRecentActivity() {
+    async function updateRecentActivity() {
         const activityList = document.getElementById('recentActivity');
         if (!activityList) return;
 
         activityList.innerHTML = '';
-        
-        sampleActivities.forEach(activity => {
-            const activityItem = document.createElement('div');
-            activityItem.className = 'activity-item';
-            
-            let iconClass = '';
-            switch(activity.type) {
-                case 'scan':
-                    iconClass = 'fa-qrcode';
-                    break;
-                case 'pass':
-                    iconClass = 'fa-id-card';
-                    break;
-                case 'resident':
-                    iconClass = 'fa-user';
-                    break;
-                case 'scanner':
-                    iconClass = 'fa-wifi';
-                    break;
+
+        try {
+            const scansData = await getScans(null, 0, 5);
+            if (!scansData || !scansData.content || scansData.content.length === 0) {
+                activityList.innerHTML = '<p class="no-data">No recent activity</p>';
+                return;
             }
-            
-            activityItem.innerHTML = `
-                <div class="activity-icon">
-                    <i class="fas ${iconClass}"></i>
-                </div>
-                <div class="activity-content">
-                    <p class="activity-message">${activity.message}</p>
-                    <span class="activity-time">${formatTimestamp(activity.timestamp)}</span>
-                </div>
-            `;
-            
-            activityList.appendChild(activityItem);
-        });
+
+            scansData.content.forEach(scan => {
+                activityList.innerHTML += `
+                    <div class="activity-item scan">
+                        <div class="activity-icon">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        <div class="activity-details">
+                            <p>${scan.visitorName} scanned at ${scan.scannerDisplayName}</p>
+                            <span class="activity-time">${formatTimestamp(scan.scannedAt)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            console.error('Error updating recent activity:', error);
+            activityList.innerHTML = '<p class="error">Failed to load recent activity</p>';
+        }
+        
     }
+
+    
 
     // Function to update dashboard with fetched data
     // Individual section update functions
@@ -1233,8 +1229,20 @@
                 </div>
                 <div class="scan-details">
                     <div class="detail-item">
-                        <i class="fas fa-fingerprint"></i>
-                        <span>Scanner ID: ${scan.scannerUid || 'Unknown'}</span>
+                        <i class="fas fa-user"></i>
+                        <span>Visitor: ${scan.visitorName || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Scanner: ${scan.scannerDisplayName || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-id-badge"></i>
+                        <span>Issuer: ${scan.issuerDisplayName || 'Unknown'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-home"></i>
+                        <span>Host: ${scan.hostName || 'Unknown'}</span>
                     </div>
                     <div class="detail-item">
                         <i class="fas fa-key"></i>
