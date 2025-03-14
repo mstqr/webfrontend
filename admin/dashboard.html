@@ -13,8 +13,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    <!-- Load admin.js after Firebase is loaded -->
+    <!-- Load JavaScript files after Firebase is loaded -->
     <script src="../js/admin.js"></script>
+    <script src="../js/overview.js"></script>
+    <script src="../js/scans.js"></script>
+    <script src="../js/invitation-codes.js"></script>
 
 </head>
 <body class="admin-body">
@@ -32,18 +35,13 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#residents" onclick="showSection('residents')">
-                            <i class="fas fa-users"></i> Residents
+                        <a href="#scans" onclick="showSection('scans')">
+                            <i class="fas fa-qrcode"></i> Scans
                         </a>
                     </li>
                     <li>
-                        <a href="#passes" onclick="showSection('passes')">
-                            <i class="fas fa-id-card"></i> Passes
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#scanners" onclick="showSection('scanners')">
-                            <i class="fas fa-qrcode"></i> Scanners
+                        <a href="#invitation-codes" onclick="showSection('invitation-codes')">
+                            <i class="fas fa-key"></i> Invitation Codes
                         </a>
                     </li>
                 </ul>
@@ -75,128 +73,13 @@
             </header>
 
             <section id="overview" class="section-content">
-                <div class="summary-cards">
-                    <div class="card">
-                        <div class="card-icon" style="background-color: #e3f2fd;">
-                            <i class="fas fa-qrcode" style="color: #1976d2;"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Total Scans Today</h3>
-                            <p class="card-value" id="totalScansToday">0</p>
-                            <p class="card-change positive">+12.5% <span>vs yesterday</span></p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon" style="background-color: #e8f5e9;">
-                            <i class="fas fa-users" style="color: #388e3c;"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Active Residents</h3>
-                            <p class="card-value" id="activeResidents">0</p>
-                            <p class="card-change positive">+3.2% <span>vs last week</span></p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon" style="background-color: #fff3e0;">
-                            <i class="fas fa-id-card" style="color: #f57c00;"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Active Passes</h3>
-                            <p class="card-value" id="activePasses">0</p>
-                            <p class="card-change positive">+5.8% <span>vs last month</span></p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon" style="background-color: #fce4ec;">
-                            <i class="fas fa-exclamation-triangle" style="color: #c2185b;"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Pending Approvals</h3>
-                            <p class="card-value" id="pendingApprovals">0</p>
-                            <p class="card-change negative">-2.4% <span>vs yesterday</span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <div class="chart-card">
-                        <h3>Scanner Activity</h3>
-                        <div class="chart" id="scannerActivityChart">
-                            <!-- Chart will be rendered here -->
-                        </div>
-                    </div>
-                    <div class="recent-activity-card">
-                        <h3>Recent Activity</h3>
-                        <div class="activity-list" id="recentActivity">
-                            <!-- Activity items will be populated here -->
-                        </div>
-                    </div>
-                </div>
+                <!-- Content will be dynamically loaded by overview.js -->
             </section>
-            <section id="residents">
-                <div class="section-header">
-                    <h2>Resident Management</h2>
-                    <button class="btn" onclick="addResident()">Add New Resident</button>
-                </div>
-                <div class="table-container">
-                    <table class="data-table" id="residentsTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Unit</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <section id="scans" class="section-content" style="display: none;">
+                <!-- Content will be dynamically loaded by scans.js -->
             </section>
-
-            <section id="passes" style="display: none;">
-                <div class="section-header">
-                    <h2>Pass Management</h2>
-                    <button class="btn" onclick="addPass()">Add New Pass</button>
-                </div>
-                <div class="table-container">
-                    <table class="data-table" id="passesTable">
-                        <thead>
-                            <tr>
-                                <th>Pass ID</th>
-                                <th>Resident</th>
-                                <th>Type</th>
-                                <th>Valid Until</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="scanners" style="display: none;">
-                <div class="section-header">
-                    <h2>Scanner Management</h2>
-                    <button class="btn" onclick="addScanner()">Add New Scanner</button>
-                </div>
-                <div class="table-container">
-                    <table class="data-table" id="scannersTable">
-                        <thead>
-                            <tr>
-                                <th>Scanner ID</th>
-                                <th>Location</th>
-                                <th>Last Active</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <section id="invitation-codes" class="section-content" style="display: none;">
+                <!-- Content will be dynamically loaded by invitation-codes.js -->
             </section>
         </main>
     </div>

@@ -107,10 +107,10 @@
         const sections = ['residents', 'passes', 'scanners'];
         sections.forEach(id => {
             const section = document.getElementById(id);
-            const tab = document.querySelector(`[data-section="${id}"]`);
             if (section) {
                 section.style.display = id === sectionId ? 'block' : 'none';
             }
+            const tab = document.querySelector(`[data-section="${id}"]`);
             if (tab) {
                 tab.classList.toggle('active', id === sectionId);
             }
@@ -131,7 +131,7 @@
         console.log('=== Paginated API Call Debug Start ===');
         console.log('Endpoint:', endpoint);
         console.log('Method:', method);
-        
+
         // Get a fresh token
         const token = await getToken(true);
         console.log('Fresh token obtained successfully');
@@ -349,37 +349,8 @@
 
     // API Service Functions
     async function getInvitationCodes() {
-        console.log('Fetching invitation codes');
         try {
-            const token = await auth.currentUser?.getIdToken(true);
-            if (!token) {
-                throw new Error('No authentication token available');
-            }
-
-            const headers = new Headers({
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Cache-Control': 'no-cache'
-            });
-
-            const response = await fetch('/api/admin/invitation-codes', {
-                method: 'GET',
-                headers,
-                credentials: 'include'
-            });
-
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries([...response.headers]));
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-            }
-
-            const data = await response.json();
-            console.log('Invitation codes response:', data);
-            return data;
+            return await callApi('/api/admin/invitation-codes');
         } catch (error) {
             console.error('Failed to fetch invitation codes:', error);
             return {};
@@ -389,65 +360,31 @@
     async function getScans(hostId = null, page = 0, size = 10) {
         console.log('Fetching scans with params:', { hostId, page, size });
         try {
-            const token = await auth.currentUser?.getIdToken(true);
-            if (!token) {
-                throw new Error('No authentication token available');
-            }
-
-            const params = new URLSearchParams({
-                page: page.toString(),
-                size: size.toString(),
+            const endpoint = '/api/admin/scans';
+            const params = {
+                page,
+                size,
                 sort: 'scannedAt,desc'
-            });
-
+            };
             if (hostId) {
-                params.append('hostId', hostId.toString());
+                params.hostId = hostId;
             }
-
-            const headers = new Headers({
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Cache-Control': 'no-cache'
-            });
-
-            const url = `/api/admin/scans?${params.toString()}`;
-            console.log('Fetching from URL:', url);
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers,
-                credentials: 'include'
-            });
-
-            console.log('Response status:', response.status);
             
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-            }
-
-            const data = await response.json();
-            console.log('Scans API response:', data);
+            const data = await callApi(endpoint, 'GET', null, params);
             
             // Ensure we return a properly structured object
             if (!data) {
-                console.warn('API returned null/undefined data');
                 return { content: [] };
             }
             
             if (Array.isArray(data)) {
-                console.log('API returned an array, wrapping in content object');
                 return { content: data };
             }
             
             if (data && typeof data === 'object' && !data.content) {
-                console.log('API returned object without content, wrapping response');
                 return { content: [data] };
             }
             
-            console.log('Returning data as-is:', data);
             return data;
         } catch (error) {
             console.error('Failed to fetch scans:', error);
@@ -724,29 +661,52 @@
     // Initial page load setup
     document.addEventListener('DOMContentLoaded', () => {
         const isDashboardPage = window.location.pathname.includes('dashboard');
-        if (isDashboardPage) {
-            // Show loading state
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.innerHTML = '<div class="loading">Loading...</div>';
+        if (!isDashboardPage) return;
+
+        // Add base styles
+        addAdminStyles();
+
+        // Get the initial section from the URL hash or default to overview
+        const hash = window.location.hash.slice(1) || 'overview';
+
+        // Show loading state
+        const mainContent = document.querySelector('main');
+        if (!mainContent) return;
+
+        mainContent.innerHTML = '<div class="loading">Loading...</div>';
+
+        // Handle hash changes
+        window.addEventListener('hashchange', () => {
+            const newHash = window.location.hash.slice(1) || 'overview';
+            showSection(newHash);
+        });
+
+        // Initialize the section when user is authenticated
+        const initializeSection = async () => {
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+
+                // Show the initial section
+                await showSection(hash);
+
+            } catch (error) {
+                console.error('Failed to initialize section:', error);
+                mainContent.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle fa-3x"></i>
+                        <h3>Error Loading Content</h3>
+                        <p>There was a problem loading this section. Please try again later.</p>
+                    </div>
+                `;
             }
-            
-            // Initialize dashboard if user is already signed in
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                initializeDashboard().then(() => {
-                    // Remove loading state
-                    if (mainContent) {
-                        mainContent.innerHTML = '';
-                    }
-                }).catch(error => {
-                    console.error('Failed to initialize dashboard:', error);
-                    if (mainContent) {
-                        mainContent.innerHTML = '<div class="error">Failed to load dashboard</div>';
-                    }
-                });
-            }
-        }
+        };
+
+        // Initialize the section
+        initializeSection();
     });
 
     async function loadResidents() {
@@ -862,17 +822,94 @@
 
 
     // Show/Hide Sections and Initialize Dashboard
-    window.showSection = function(sectionId) {
-        // Hide all sections
-        document.querySelectorAll('section').forEach(section => {
-            section.style.display = 'none';
+    async function updateDashboardContent(codes, scans) {
+        const mainContent = document.querySelector('main');
+        if (!mainContent) return;
+
+        // Process invitation codes to get unused ones
+        const allCodes = [];
+        Object.entries(codes).forEach(([host, hostCodes]) => {
+            hostCodes.forEach(code => {
+                const isObject = typeof code === 'object' && code !== null;
+                const isUsed = isObject ? code.used : false;
+                if (!isUsed) {
+                    allCodes.push({
+                        host,
+                        code: isObject ? code.code : code
+                    });
+                }
+            });
         });
 
-        // Show the selected section
-        const selectedSection = document.getElementById(sectionId);
-        if (selectedSection) {
-            selectedSection.style.display = 'block';
-        }
+        // Get the 10 most recent unused codes
+        const recentUnusedCodes = allCodes.slice(0, 10);
+
+        // Group the unused codes by host
+        const unusedCodesByHost = recentUnusedCodes.reduce((acc, { host, code }) => {
+            if (!acc[host]) acc[host] = [];
+            acc[host].push(code);
+            return acc;
+        }, {});
+
+        // Create dashboard content with unused codes
+        const hostsHtml = Object.entries(unusedCodesByHost).map(([host, hostCodes]) => `
+            <div class="host-section">
+                <h3><i class="fas fa-building"></i> ${host}</h3>
+                <div class="invitation-codes-grid">
+                    ${hostCodes.map(code => `
+                        <div class="code-card">
+                            <div class="code-info">
+                                <span class="code-value">${code}</span>
+                            </div>
+                            <span class="code-status active">
+                                <i class="fas fa-circle"></i> Active
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        mainContent.innerHTML = `
+            <div class="dashboard-content">
+                <div class="section">
+                    <div class="dashboard-header">
+                        <h2><i class="fas fa-ticket-alt"></i> Recent Unused Invitation Codes</h2>
+                        <button class="btn btn-primary" onclick="generateNewCode()">
+                            <i class="fas fa-plus"></i> Generate New Code
+                        </button>
+                    </div>
+                    ${recentUnusedCodes.length ? hostsHtml : `
+                        <div class="empty-state">
+                            <i class="fas fa-ticket-alt fa-3x"></i>
+                            <h3>No Unused Invitation Codes</h3>
+                            <p>There are no unused invitation codes available at the moment.</p>
+                        </div>
+                    `}
+                    <div class="view-all-link">
+                        <a href="#" onclick="showSection('invitation-codes'); return false;">
+                            <i class="fas fa-arrow-right"></i> View All Invitation Codes
+                        </a>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="dashboard-header">
+                        <h2><i class="fas fa-qrcode"></i> Recent Scans</h2>
+                        <a href="#" class="btn btn-text" onclick="showSection('scans'); return false;">
+                            View All <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div id="scans-container"></div>
+                </div>
+            </div>
+        `;
+
+        updateScansSection(scans);
+    }
+
+    window.showSection = async function(sectionId) {
+        const mainContent = document.querySelector('main');
+        if (!mainContent) return;
 
         // Update active state in navigation
         document.querySelectorAll('.sidebar-nav a').forEach(link => {
@@ -883,22 +920,142 @@
             activeLink.classList.add('active');
         }
 
-        // Load data for the selected section
-        switch(sectionId) {
-            case 'overview':
-                // Metrics are already updated by initializeDashboard
-                break;
-            case 'residents':
-                loadResidents();
-                break;
-            case 'passes':
-                loadPasses();
-                break;
-            case 'scanners':
-                loadScanners();
-                break;
+        // Update URL hash without triggering the hashchange event
+        const currentHash = window.location.hash.slice(1);
+        if (currentHash !== sectionId) {
+            history.pushState(null, '', `#${sectionId}`);
+        }
+
+        // Show loading state
+        mainContent.innerHTML = '<div class="loading">Loading...</div>';
+
+        try {
+            // Load data for the selected section
+            switch(sectionId) {
+                case 'overview':
+                    const codes = await getInvitationCodes();
+                    const scans = await getScans();
+                    await updateDashboardContent(codes, scans);
+                    break;
+                case 'scans':
+                    await showScansSection();
+                    break;
+                case 'invitation-codes':
+                    await showInvitationCodesSection();
+                    break;
+                case 'residents':
+                    await loadResidents();
+                    break;
+                case 'passes':
+                    await loadPasses();
+                    break;
+                case 'scanners':
+                    await loadScanners();
+                    break;
+                default:
+                    console.error('Unknown section:', sectionId);
+                    mainContent.innerHTML = '<div class="error">Section not found</div>';
+            }
+        } catch (error) {
+            console.error(`Error loading section ${sectionId}:`, error);
+            mainContent.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle fa-3x"></i>
+                    <h3>Error Loading Content</h3>
+                    <p>There was a problem loading this section. Please try again later.</p>
+                </div>
+            `;
         }
     };
+
+    async function showScansSection() {
+        const mainContent = document.querySelector('main');
+        if (!mainContent) return;
+
+        try {
+            const scans = await getScans(null, 0, 50); // Get up to 50 scans for the dedicated page
+            
+            mainContent.innerHTML = `
+                <div class="section">
+                    <div class="dashboard-header">
+                        <h2><i class="fas fa-qrcode"></i> All Scans</h2>
+                    </div>
+                    <div id="scans-container"></div>
+                </div>
+            `;
+
+            updateScansSection(scans);
+        } catch (error) {
+            console.error('Error loading scans:', error);
+            throw error;
+        }
+    }
+
+    async function showInvitationCodesSection() {
+        const mainContent = document.querySelector('main');
+        if (!mainContent) return;
+
+        try {
+            const codes = await getInvitationCodes();
+            
+            const hostsHtml = Object.entries(codes).map(([host, hostCodes]) => `
+                <div class="host-section">
+                    <h3>
+                        <i class="fas fa-building"></i>
+                        ${host}
+                    </h3>
+                    <div class="invitation-codes-grid">
+                        ${hostCodes.map(code => {
+                            const isObject = typeof code === 'object' && code !== null;
+                            const codeValue = isObject ? code.code : code;
+                            const isUsed = isObject ? code.used : false;
+                            return `
+                                <div class="code-card ${isUsed ? 'used' : ''}">
+                                    <div class="code-info">
+                                        <span class="code-value">${codeValue}</span>
+                                        ${isObject && code.usedBy ? `
+                                            <span class="code-used-by">
+                                                <i class="fas fa-user"></i> ${code.usedBy}
+                                            </span>
+                                        ` : ''}
+                                        ${isObject && code.usedAt ? `
+                                            <span class="code-used-at">
+                                                <i class="fas fa-clock"></i> ${new Date(code.usedAt).toLocaleString()}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                    <span class="code-status ${isUsed ? 'used' : 'active'}">
+                                        ${isUsed ? '<i class="fas fa-check-circle"></i> Used' : '<i class="fas fa-circle"></i> Active'}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            mainContent.innerHTML = `
+                <div class="section">
+                    <div class="dashboard-header">
+                        <h2><i class="fas fa-ticket-alt"></i> All Invitation Codes</h2>
+                        <button class="btn btn-primary" onclick="generateNewCode()">
+                            <i class="fas fa-plus"></i> Generate New Code
+                        </button>
+                    </div>
+                    ${Object.keys(codes).length ? hostsHtml : `
+                        <div class="empty-state">
+                            <i class="fas fa-ticket-alt fa-3x"></i>
+                            <h3>No Invitation Codes</h3>
+                            <p>There are no invitation codes available at the moment.</p>
+                        </div>
+                    `}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error loading invitation codes:', error);
+            throw error;
+        }
+    }
 
     // Function to update the current date
     function updateCurrentDate() {
@@ -1362,269 +1519,345 @@
         console.log('Starting dashboard initialization...');
         
         try {
-            // Clear any previous error state
             const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.innerHTML = '<div class="loading">Loading dashboard data...</div>';
+            if (!mainContent) {
+                console.error('Main content element not found');
+                return;
             }
 
-            // Fetch both invitation codes and scans
-            const [codes, scans] = await Promise.all([
-                getInvitationCodes(),
-                getScans()
-            ]);
+            // Add base styles
+            const adminStyle = document.createElement('style');
+            adminStyle.textContent += `
+                .view-all-link {
+                    text-align: right;
+                    margin-top: 16px;
+                }
+                .view-all-link a {
+                    color: #1976d2;
+                    text-decoration: none;
+                    font-size: 14px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .view-all-link a:hover {
+                    text-decoration: underline;
+                }
+                .btn-text {
+                    background: none;
+                    border: none;
+                    color: #1976d2;
+                    padding: 8px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .btn-text:hover {
+                    text-decoration: underline;
+                }
+            `;
+            adminStyle.textContent = `
+                .dashboard-content {
+                    padding: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .section {
+                    margin-bottom: 40px;
+                    background: #fff;
+                    border-radius: 12px;
+                    padding: 24px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .dashboard-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 24px;
+                }
+                .dashboard-header h2 {
+                    margin: 0;
+                    color: #2c3e50;
+                    font-size: 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .scan-stats {
+                    display: flex;
+                    gap: 16px;
+                }
+                .stat {
+                    background: #f8f9fa;
+                    padding: 8px 12px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    color: #2c3e50;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .scans-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .scan-card {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 16px;
+                    transition: all 0.2s;
+                }
+                .scan-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                }
+                .scan-header {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                }
+                .scan-location {
+                    font-weight: 500;
+                    color: #2c3e50;
+                }
+                .scan-time {
+                    color: #666;
+                    font-size: 14px;
+                }
+                .scan-details {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .scan-user {
+                    font-size: 14px;
+                    color: #666;
+                }
+                .scan-status {
+                    font-size: 12px;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .scan-status.allowed {
+                    background: #e8f5e9;
+                    color: #2e7d32;
+                }
+                .scan-status.denied {
+                    background: #ffebee;
+                    color: #c62828;
+                }
+                .invitation-codes-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                .host-section {
+                    background: #fff;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    padding: 20px;
+                    margin-bottom: 20px;
+                }
+                .host-section h3 {
+                    color: #34495e;
+                    margin: 0 0 15px 0;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .code-card {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    transition: all 0.2s;
+                }
+                .code-card.used {
+                    background: #f5f5f5;
+                }
+                .code-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                }
+                .code-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .code-value {
+                    font-family: monospace;
+                    font-size: 14px;
+                    color: #2c3e50;
+                    background: #fff;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    border: 1px solid #e9ecef;
+                    letter-spacing: 1px;
+                }
+                .code-used-by, .code-used-at {
+                    font-size: 12px;
+                    color: #666;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .code-status {
+                    font-size: 12px;
+                    padding: 6px 10px;
+                    border-radius: 12px;
+                    background: #e8f5e9;
+                    color: #2e7d32;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    white-space: nowrap;
+                }
+                .code-status.used {
+                    background: #ffebee;
+                    color: #c62828;
+                }
+                .code-status i {
+                    font-size: 10px;
+                }
+                .empty-state {
+                    text-align: center;
+                    padding: 40px;
+                    color: #666;
+                }
+                .empty-state i {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                    color: #95a5a6;
+                }
+                .empty-state h3 {
+                    margin: 0 0 8px 0;
+                    color: #2c3e50;
+                }
+                .error-state {
+                    text-align: center;
+                    padding: 40px;
+                    color: #e74c3c;
+                }
+                .error-state i {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                }
+            `;
+            document.head.appendChild(adminStyle);
+
+            // Check authentication
+            const user = auth.currentUser;
+            if (!user) {
+                console.error('User not authenticated');
+                window.location.href = '/admin/login';
+                return;
+            }
+
+            // Update the main content with dashboard data
+            await updateDashboardContent(codes, scans);
             
-            console.log('Fetched invitation codes:', codes);
-            console.log('Fetched scans:', scans);
-
-            // Update main content
-            if (mainContent) {
-                // Add styles
-                const style = document.createElement('style');
-                style.textContent = `
-                    .dashboard-content {
-                        padding: 20px;
-                        max-width: 1200px;
-                        margin: 0 auto;
-                    }
-                    .section {
-                        margin-bottom: 40px;
-                        background: #fff;
-                        border-radius: 12px;
-                        padding: 24px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    .dashboard-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 24px;
-                    }
-                    .dashboard-header h2 {
-                        margin: 0;
-                        color: #2c3e50;
-                        font-size: 24px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-                    .scan-stats {
-                        display: flex;
-                        gap: 16px;
-                    }
-                    .stat {
-                        background: #f8f9fa;
-                        padding: 8px 12px;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        color: #2c3e50;
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                    }
-                    .scans-list {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 12px;
-                    }
-                    .scan-card {
-                        background: #f8f9fa;
-                        border-radius: 8px;
-                        padding: 16px;
-                        transition: all 0.2s;
-                    }
-                    .scan-card:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    }
-                    .scan-header {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 8px;
-                    }
-                    .scan-location {
-                        font-weight: 500;
-                        color: #2c3e50;
-                    }
-                    .scan-time {
-                        color: #666;
-                        font-size: 14px;
-                    }
-                    .scan-details {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-                    .scan-user {
-                        font-size: 14px;
-                        color: #666;
-                    }
-                    .scan-status {
-                        font-size: 12px;
-                        padding: 4px 8px;
-                        border-radius: 12px;
-                        display: flex;
-                        align-items: center;
-                        gap: 4px;
-                    }
-                    .scan-status.allowed {
-                        background: #e8f5e9;
-                        color: #2e7d32;
-                    }
-                    .scan-status.denied {
-                        background: #ffebee;
-                        color: #c62828;
-                    }
-                    .invitation-codes-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                        gap: 20px;
-                        margin-top: 20px;
-                    }
-                    .host-section {
-                        background: #fff;
-                        border-radius: 10px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        padding: 20px;
-                        margin-bottom: 20px;
-                    }
-                    .host-section h3 {
-                        color: #34495e;
-                        margin: 0 0 15px 0;
-                        font-size: 18px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-                    .code-card {
-                        background: #f8f9fa;
-                        border-radius: 8px;
-                        padding: 15px;
-                        margin-bottom: 10px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: flex-start;
-                        transition: all 0.2s;
-                    }
-                    .code-card.used {
-                        background: #f5f5f5;
-                    }
-                    .code-card:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    }
-                    .code-info {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 8px;
-                    }
-                    .code-value {
-                        font-family: monospace;
-                        font-size: 14px;
-                        color: #2c3e50;
-                        background: #fff;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        border: 1px solid #e9ecef;
-                        letter-spacing: 1px;
-                    }
-                    .code-used-by, .code-used-at {
-                        font-size: 12px;
-                        color: #666;
-                        display: flex;
-                        align-items: center;
-                        gap: 4px;
-                    }
-                    .code-status {
-                        font-size: 12px;
-                        padding: 6px 10px;
-                        border-radius: 12px;
-                        background: #e8f5e9;
-                        color: #2e7d32;
-                        display: flex;
-                        align-items: center;
-                        gap: 4px;
-                        white-space: nowrap;
-                    }
-                    .code-status.used {
-                        background: #ffebee;
-                        color: #c62828;
-                    }
-                    .code-status i {
-                        font-size: 10px;
-                    }
-                    .empty-state {
-                        text-align: center;
-                        padding: 40px;
-                        color: #666;
-                    }
-                `;
-                document.head.appendChild(style);
-
-                // Create dashboard content
-                const hostsHtml = Object.entries(codes).map(([host, hostCodes]) => `
-                    <div class="host-section">
-                        <h3>
-                            <i class="fas fa-building"></i>
-                            ${host}
-                        </h3>
-                        <div class="invitation-codes-grid">
-                            ${hostCodes.map(code => {
-                                // Check if code is an object with code and used properties
-                                const codeValue = typeof code === 'object' ? code.code : code;
-                                const isUsed = typeof code === 'object' ? code.used : false;
-                                return `
-                                    <div class="code-card ${isUsed ? 'used' : ''}">
-                                        <div class="code-info">
-                                            <span class="code-value">${codeValue}</span>
-                                            ${code.usedBy ? `
-                                                <span class="code-used-by">
-                                                    <i class="fas fa-user"></i> ${code.usedBy}
-                                                </span>
-                                            ` : ''}
-                                            ${code.usedAt ? `
-                                                <span class="code-used-at">
-                                                    <i class="fas fa-clock"></i> ${new Date(code.usedAt).toLocaleString()}
-                                                </span>
-                                            ` : ''}
-                                        </div>
-                                        <span class="code-status ${isUsed ? 'used' : 'active'}">
-                                            ${isUsed ? '<i class="fas fa-check-circle"></i> Used' : '<i class="fas fa-circle"></i> Active'}
-                                        </span>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `).join('');
-
-                mainContent.innerHTML = `
-                    <div class="dashboard-content">
-                        <div class="section">
-                            <div class="dashboard-header">
-                                <h2><i class="fas fa-ticket-alt"></i> Invitation Codes</h2>
-                                <button class="btn btn-primary" onclick="generateNewCode()">
-                                    <i class="fas fa-plus"></i> Generate New Code
-                                </button>
-                            </div>
-                            ${Object.keys(codes).length ? hostsHtml : `
-                                <div class="empty-state">
-                                    <i class="fas fa-ticket-alt fa-3x"></i>
-                                    <h3>No Invitation Codes</h3>
-                                    <p>There are no invitation codes available at the moment.</p>
-                                </div>
-                            `}
-                        </div>
-
-                        <div class="section">
-                            <div class="dashboard-header">
-                                <h2><i class="fas fa-qrcode"></i> Recent Scans</h2>
-                            </div>
-                            <div id="scans-container"></div>
-                        </div>
-                    </div>
-                `;
+            // Fetch the invitation codes and scans
+            let codes = {};
+            let scans = { content: [] };
+            try {
+                codes = await getInvitationCodes();
+                scans = await getScans();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                throw error;
             }
+            
+            // Process invitation codes to get unused ones
+            const allCodes = [];
+            Object.entries(codes).forEach(([host, hostCodes]) => {
+                hostCodes.forEach(code => {
+                    const isObject = typeof code === 'object' && code !== null;
+                    const isUsed = isObject ? code.used : false;
+                    if (!isUsed) {
+                        allCodes.push({
+                            host,
+                            code: isObject ? code.code : code
+                        });
+                    }
+                });
+            });
+
+            // Get the 10 most recent unused codes
+            const recentUnusedCodes = allCodes.slice(0, 10);
+
+            // Group the unused codes by host
+            const unusedCodesByHost = recentUnusedCodes.reduce((acc, { host, code }) => {
+                if (!acc[host]) acc[host] = [];
+                acc[host].push(code);
+                return acc;
+            }, {});
+
+            // Create dashboard content with unused codes
+            const hostsHtml = Object.entries(unusedCodesByHost).map(([host, hostCodes]) => `
+                <div class="host-section">
+                    <h3>
+                        <i class="fas fa-building"></i>
+                        ${host}
+                    </h3>
+                    <div class="invitation-codes-grid">
+                        ${hostCodes.map(code => `
+                            <div class="code-card">
+                                <div class="code-info">
+                                    <span class="code-value">${code}</span>
+                                </div>
+                                <span class="code-status active">
+                                    <i class="fas fa-circle"></i> Active
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            mainContent.innerHTML = `
+                <div class="dashboard-content">
+                    <div class="section">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-ticket-alt"></i> Recent Unused Invitation Codes</h2>
+                            <button class="btn btn-primary" onclick="generateNewCode()">
+                                <i class="fas fa-plus"></i> Generate New Code
+                            </button>
+                        </div>
+                        ${recentUnusedCodes.length ? hostsHtml : `
+                            <div class="empty-state">
+                                <i class="fas fa-ticket-alt fa-3x"></i>
+                                <h3>No Unused Invitation Codes</h3>
+                                <p>There are no unused invitation codes available at the moment.</p>
+                            </div>
+                        `}
+                        <div class="view-all-link">
+                            <a href="#" onclick="showSection('invitation-codes'); return false;">
+                                <i class="fas fa-arrow-right"></i> View All Invitation Codes
+                            </a>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="dashboard-header">
+                            <h2><i class="fas fa-qrcode"></i> Recent Scans</h2>
+                            <a href="#" class="btn btn-text" onclick="showSection('scans'); return false;">
+                                View All <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div id="scans-container"></div>
+                    </div>
+                </div>
+            `;
 
             // Update the scans section with the fetched data
             updateScansSection(scans);
@@ -1639,9 +1872,9 @@
             const mainContent = document.querySelector('.main-content');
             if (mainContent) {
                 mainContent.innerHTML = `
-                    <div class="error">
-                        <h2>Error Loading Dashboard</h2>
-                        <p>Failed to load invitation codes. Please try refreshing the page.</p>
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>An error occurred while initializing the dashboard. Please try refreshing the page.</p>
                         <pre>${error.message}</pre>
                     </div>
                 `;
