@@ -13,11 +13,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    <!-- Load JavaScript files after Firebase is loaded -->
-    <script src="../js/admin.js"></script>
-    <script src="../js/overview.js"></script>
-    <script src="../js/scans.js"></script>
-    <script src="../js/invitation-codes.js"></script>
+    <!-- Load modular admin scripts -->
+    <script type="module" src="../js/admin/main.js"></script>
 
 </head>
 <body class="admin-body">
@@ -30,24 +27,24 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li>
-                        <a href="#overview" onclick="showSection('overview')" class="active">
+                        <a href="#overview" data-section="overview" class="nav-link active">
                             <i class="fas fa-home"></i> Overview
                         </a>
                     </li>
                     <li>
-                        <a href="#scans" onclick="showSection('scans')">
+                        <a href="#scans" data-section="scans" class="nav-link">
                             <i class="fas fa-qrcode"></i> Scans
                         </a>
                     </li>
                     <li>
-                        <a href="#invitation-codes" onclick="showSection('invitation-codes')">
+                        <a href="#invitation-codes" data-section="invitation-codes" class="nav-link">
                             <i class="fas fa-key"></i> Invitation Codes
                         </a>
                     </li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <button onclick="logout()" class="btn-logout">
+                <button class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
