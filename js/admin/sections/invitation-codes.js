@@ -10,88 +10,168 @@ export async function initializeInvitationCodes() {
     if (!codesSection) return;
 
     try {
-        const codes = await getInvitationCodes();
-        renderInvitationCodesTable(codes);
-        setupInvitationCodeForm();
+        const response = await getInvitationCodes();
+        // Get the first host's codes since that's what we have
+        const hostCodes = Object.values(response)[0];
+        if (!Array.isArray(hostCodes)) {
+            throw new Error('Invalid response format');
+        }
+        renderInvitationCodesTable(hostCodes);
     } catch (error) {
         console.error('Error loading invitation codes:', error);
         codesSection.innerHTML = '<div class="error">Error loading invitation codes. Please try again later.</div>';
     }
 }
 
-function renderInvitationCodesTable(codes) {
+function renderInvitationCodesTable(codes, filter = 'all') {
     const codesSection = document.getElementById('invitation-codes');
     if (!codesSection) return;
     
-    // Create container for the form and table
+    // Filter codes based on selection
+    const filteredCodes = filter === 'all' ? codes :
+        filter === 'used' ? codes.filter(code => code.used) :
+        codes.filter(code => !code.used);
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .invitation-codes-container {
+            padding: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .data-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .filter-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .filter-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .filter-button:hover {
+            background: #f8fafc;
+        }
+        .filter-button.active {
+            background: #0284c7;
+            border-color: #0284c7;
+            color: white;
+        }
+        .used-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            min-width: 90px;
+            text-align: center;
+        }
+        .used-badge.yes {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .used-badge.no {
+            background: #dcfce7;
+            color: #166534;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Create container
     const container = document.createElement('div');
     container.className = 'invitation-codes-container';
     
-    // Create form for new codes
-    const form = document.createElement('form');
-    form.id = 'new-code-form';
-    form.className = 'form-inline';
-    form.innerHTML = `
-        <button type="submit" class="btn-primary">Generate New Code</button>
+    // Create filter buttons
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'filter-container';
+    filterContainer.innerHTML = `
+        <button class="filter-button ${filter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+        <button class="filter-button ${filter === 'used' ? 'active' : ''}" data-filter="used">Used</button>
+        <button class="filter-button ${filter === 'unused' ? 'active' : ''}" data-filter="unused">Unused</button>
     `;
+    
+    // Add filter button listeners
+    filterContainer.querySelectorAll('.filter-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const newFilter = button.dataset.filter;
+            renderInvitationCodesTable(codes, newFilter);
+        });
+    });
+    
+
     
     // Create table
     const table = document.createElement('table');
     table.className = 'data-table';
-    
-    table.innerHTML = `
+        table.innerHTML = `
         <thead>
             <tr>
                 <th>Code</th>
-                <th>Created</th>
-                <th>Used</th>
-                <th>Actions</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
-            ${codes.map(code => `
+            ${filteredCodes.length ? filteredCodes.map(code => `
                 <tr>
-                    <td>${code.code}</td>
-                    <td>${new Date(code.created_at).toLocaleString()}</td>
-                    <td>${code.used ? 'Yes' : 'No'}</td>
+                    <td><code>${code.code || 'N/A'}</code></td>
                     <td>
-                        ${!code.used ? `
-                            <button type="button" class="btn-delete" data-code="${code.code}">
-                                Delete
-                            </button>
-                        ` : ''}
+                        <span class="used-badge ${code.used ? 'yes' : 'no'}">
+                            ${code.used ? 'Used' : 'Unused'}
+                        </span>
                     </td>
                 </tr>
-            `).join('')}
+            `).join('') : `
+                <tr>
+                    <td colspan="2" style="text-align: center; padding: 2rem;">
+                        <div style="color: #64748b;">
+                            <i class="fas fa-ticket" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                            <p style="margin: 0;">No invitation codes found</p>
+                        </div>
+                    </td>
+                </tr>
+            `}
         </tbody>
     `;
     
-    // Add event listeners for delete buttons
-    table.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', async (e) => {
-            const code = e.target.dataset.code;
-            if (!code || !confirm('Are you sure you want to delete this code?')) return;
-            
-            try {
-                await deleteInvitationCode(code);
-                const updatedCodes = await getInvitationCodes();
-                renderInvitationCodesTable(updatedCodes);
-            } catch (error) {
-                console.error('Error deleting invitation code:', error);
-                alert('Error deleting invitation code. Please try again.');
-            }
-        });
-    });
+
+    
+
     
     // Clear and append elements
-    container.appendChild(form);
+
+    container.appendChild(filterContainer);
     container.appendChild(table);
     
     codesSection.innerHTML = '';
     codesSection.appendChild(container);
-    
-    // Set up form handler
-    setupInvitationCodeForm();
 }
 
 function setupInvitationCodeForm() {

@@ -1,6 +1,6 @@
 import { auth } from './config.js';
 
-const API_BASE_URL = 'https://api.mstqr.com';
+const API_BASE_URL = '';  // Empty since we're using the proxy
 
 async function getAuthHeaders() {
     const token = await auth.currentUser?.getIdToken();
@@ -14,8 +14,12 @@ async function fetchWithAuth(endpoint, options = {}) {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
+        credentials: 'include',  // Include cookies for CORS
         headers: {
             ...headers,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
             ...options.headers
         }
     });
