@@ -100,6 +100,13 @@
 
     .content-header {
         margin-bottom: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .content-header .actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .section-content {
@@ -110,5 +117,71 @@
     .data-table td {
         padding: 0.75rem;
         font-size: 0.875rem;
+    }
+
+    /* Form improvements */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+        padding: 0.625rem;
+    }
+
+    /* Button improvements */
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+        min-height: 44px; /* Better touch targets */
+    }
+
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-group .btn {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Card improvements */
+    .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Modal improvements */
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+        max-height: 90vh;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+        max-height: calc(90vh - 120px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Better spacing for lists and grids */
+    .list-group-item {
+        padding: 0.75rem;
+    }
+
+    .grid {
+        gap: 1rem;
     }
 }
