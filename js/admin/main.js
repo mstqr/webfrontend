@@ -1,5 +1,6 @@
 import { initializeAuth, handleLogin, logout } from './auth.js';
 import { initializeDashboard, showSection } from './dashboard.js';
+import { initializeOverview } from './sections/overview.js';
 
 // Initialize everything when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,6 +46,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 logoutBtn.addEventListener('click', logout);
             }
             
+            // Initialize overview section
+            await initializeOverview();
+
             // Show initial section based on hash or default to overview
             const initialSection = window.location.hash.slice(1) || 'overview';
             showSection(initialSection);
