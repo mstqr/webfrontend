@@ -6,19 +6,22 @@ export async function initializeInvitationCodes() {
     const codesSection = document.getElementById('invitation-codes');
     if (!codesSection) return;
 
-    // If we already have data, just re-render it
-    if (currentData) {
-        renderInvitationCodesTable(currentData);
-        return;
-    }
+    await loadInvitationCodes();
+
+    // Add refresh button event listener
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#invitation-codes .refresh-button')) {
+            loadInvitationCodes();
+        }
+    });
+}
+
+async function loadInvitationCodes() {
+    const codesSection = document.getElementById('invitation-codes');
+    if (!codesSection) return;
 
     // Show loading state
-    codesSection.innerHTML = `
-        <div style="text-align: center; padding: 2rem; color: #64748b;">
-            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-            <p style="margin: 0;">Loading invitation codes...</p>
-        </div>
-    `;
+    codesSection.classList.add('loading');
 
     try {
         const response = await getInvitationCodes();
@@ -47,11 +50,25 @@ export async function initializeInvitationCodes() {
     } catch (error) {
         console.error('Error loading invitation codes:', error);
         codesSection.innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: #dc2626;">
-                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                <p style="margin: 0;">Could not load invitation codes. Please try again later.</p>
+            <div class="section-panel">
+                <div class="section-header">
+                    <h2>Invitation Codes</h2>
+                    <button class="refresh-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 11-2.2-5.8M21 3v6h-6" />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error loading invitation codes. Please try again.</p>
+                </div>
             </div>
         `;
+    } finally {
+        // Hide loading state
+        codesSection.classList.remove('loading');
     }
 }
 
@@ -69,6 +86,44 @@ function renderInvitationCodesTable(codes, filter = 'all') {
     style.textContent = `
         .invitation-codes-container {
             padding: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #1e293b;
+        }
+
+        .refresh-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .refresh-button:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .refresh-button svg {
+            width: 16px;
+            height: 16px;
         }
 
         .data-table {
@@ -134,12 +189,31 @@ function renderInvitationCodesTable(codes, filter = 'all') {
             background: #dcfce7;
             color: #166534;
         }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
     `;
     document.head.appendChild(style);
     
     // Create container
     const container = document.createElement('div');
     container.className = 'invitation-codes-container';
+
+    // Create header with refresh button
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `
+        <h2>Invitation Codes</h2>
+        <button class="refresh-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 11-2.2-5.8M21 3v6h-6" />
+            </svg>
+            Refresh
+        </button>
+    `;
+    container.appendChild(header);
     
     // Create filter buttons
     const filterContainer = document.createElement('div');
@@ -149,6 +223,7 @@ function renderInvitationCodesTable(codes, filter = 'all') {
         <button class="filter-button ${filter === 'used' ? 'active' : ''}" data-filter="used">Used</button>
         <button class="filter-button ${filter === 'unused' ? 'active' : ''}" data-filter="unused">Unused</button>
     `;
+    container.appendChild(filterContainer);
     
     // Add filter button listeners
     filterContainer.querySelectorAll('.filter-button').forEach(button => {
@@ -158,12 +233,10 @@ function renderInvitationCodesTable(codes, filter = 'all') {
         });
     });
     
-
-    
     // Create table
     const table = document.createElement('table');
     table.className = 'data-table';
-        table.innerHTML = `
+    table.innerHTML = `
         <thead>
             <tr>
                 <th>Code</th>
@@ -198,8 +271,6 @@ function renderInvitationCodesTable(codes, filter = 'all') {
 
     
     // Clear and append elements
-
-    container.appendChild(filterContainer);
     container.appendChild(table);
     
     codesSection.innerHTML = '';

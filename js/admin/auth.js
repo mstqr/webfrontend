@@ -10,33 +10,29 @@ export function initializeAuth() {
     // Create a new promise that resolves when auth is initialized
     authInitPromise = new Promise((resolve) => {
         // Set up persistent auth check
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged((user) => {
+            // Handle auth state changes
+            const isDashboardPage = window.location.pathname.includes('dashboard');
+            const isLoginPage = window.location.pathname.includes('login');
+
+            if (user) {
+                if (isLoginPage) {
+                    console.log('Redirecting to dashboard');
+                    window.location.replace('/admin/dashboard');
+                    return;
+                }
+            } else {
+                if (isDashboardPage) {
+                    console.log('Redirecting to login');
+                    window.location.replace('/admin/login.html');
+                    return;
+                }
+            }
+
+            // Handle initial auth state
             if (!authInitialized) {
                 authInitialized = true;
                 console.log('Auth initialized, user:', user ? 'logged in' : 'not logged in');
-
-                // Handle redirects only on first initialization
-                const isDashboardPage = window.location.pathname.includes('dashboard');
-                const isLoginPage = window.location.pathname.includes('login');
-
-                if (user) {
-                    if (isLoginPage) {
-                        console.log('Redirecting to dashboard');
-                        window.location.replace('/admin/dashboard');
-                        return;
-                    }
-                } else {
-                    if (isDashboardPage) {
-                        console.log('Redirecting to login');
-                        window.location.replace('/admin/login.html');
-                        return;
-                    }
-                }
-
-                // Unsubscribe from the initial auth check
-                unsubscribe();
-                
-                // Resolve with the user
                 resolve(user);
             }
         });
@@ -101,7 +97,8 @@ export function logout() {
     auth.signOut()
         .then(() => {
             console.log('Logout successful');
-            // Auth listener will handle redirect
+            // Explicitly redirect to login page
+            window.location.replace('/admin/login.html');
         })
         .catch((error) => {
             console.error('Error signing out:', error);

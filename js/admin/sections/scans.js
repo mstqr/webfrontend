@@ -6,6 +6,23 @@ export async function initializeScans() {
     const scansSection = document.getElementById('scans');
     if (!scansSection) return;
 
+    await loadScans();
+
+    // Add refresh button event listener
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#scans .refresh-button')) {
+            loadScans();
+        }
+    });
+}
+
+async function loadScans() {
+    const scansSection = document.getElementById('scans');
+    if (!scansSection) return;
+
+    // Show loading state
+    scansSection.classList.add('loading');
+
     try {
         const response = await getScans(currentSort ? { sort: currentSort } : {});
         console.log('Scans response:', response);
@@ -35,6 +52,9 @@ export async function initializeScans() {
     } catch (error) {
         console.error('Error loading scans:', error);
         scansSection.innerHTML = '<div class="error">Error loading scans. Please try again later.</div>';
+    } finally {
+        // Hide loading state
+        scansSection.classList.remove('loading');
     }
 }
 
@@ -65,6 +85,27 @@ async function handleSort(property) {
 function renderScansTable(scans) {
     const scansSection = document.getElementById('scans');
     
+    // Create container for the section
+    const container = document.createElement('div');
+    container.className = 'section-panel';
+
+    // Create header with refresh button
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `
+        <h2>Recent Scans</h2>
+        <button class="refresh-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 11-2.2-5.8M21 3v6h-6" />
+            </svg>
+            Refresh
+        </button>
+    `;
+
+    // Create loading spinner
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+
     // Add table styles
     const style = document.createElement('style');
     style.textContent = `
@@ -201,7 +242,11 @@ function renderScansTable(scans) {
     
     // Update the section
     scansSection.innerHTML = '';
-    scansSection.appendChild(table);
+    container.appendChild(header);
+    container.appendChild(spinner);
+    container.appendChild(table);
+    scansSection.appendChild(style);
+    scansSection.appendChild(container);
 
     // Add click handlers for sortable columns
     const sortableHeaders = table.querySelectorAll('th.sortable');
