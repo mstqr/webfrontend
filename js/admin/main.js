@@ -48,6 +48,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Show initial section based on hash or default to overview
             const initialSection = window.location.hash.slice(1) || 'overview';
             showSection(initialSection);
+
+            // Set up mobile menu toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            }
+
+            if (menuToggle && sidebar && sidebarOverlay) {
+                menuToggle.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+
+                // Close sidebar when clicking a nav link on mobile
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            toggleSidebar();
+                        }
+                    });
+                });
+            }
         }
     } catch (error) {
         console.error('Error initializing app:', error);

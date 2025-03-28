@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net https://*.gstatic.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.gstatic.com; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.firebaseio.com https://cdn.jsdelivr.net https://*.gstatic.com;">
     <title>MSTQR Admin Dashboard</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin/main.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="../css/fontawesome.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,6 +20,10 @@
 </head>
 <body class="admin-body">
     <div class="admin-dashboard">
+        <div class="sidebar-overlay"></div>
+        <button class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
         <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="../assets/logo.png" alt="MSTQR Logo" class="logo">
@@ -54,20 +58,7 @@
         <main class="main-content">
 
             <header class="content-header">
-                <div class="header-left">
-                    <h1>Welcome Back</h1>
-                    <p class="current-date"></p>
-                </div>
-                <div class="header-right">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search...">
-                    </div>
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </div>
-                </div>
+                <h1>Welcome Back</h1>
             </header>
 
             <section id="overview" class="section-content">
