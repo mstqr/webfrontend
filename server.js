@@ -1,24 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const https = require('https');
+const compression = require('compression');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Enable compression
+app.use(compression());
+
+// Cache static files
+const staticOptions = {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true
+};
 
 // Security middleware
 app.use((req, res, next) => {
     // Remove any reference to the server software
     res.removeHeader('X-Powered-By');
-    
-    // CORS headers
-    const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader('Access-Control-Allow-Credentials', true);
     
     // Security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -36,125 +36,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// Parse JSON bodies
-app.use(express.json());
+// Configure aggressive caching for fonts
+const fontOptions = {
+    maxAge: '30d',  // Cache fonts for 30 days
+    immutable: true,
+    etag: true,
+    lastModified: true
+};
 
-// Serve static files from js directory first (to not interfere with /api)
-app.use('/js', express.static(path.join(__dirname, 'js')));
-
-// Serve static files from admin directory
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
-
-// Serve static files from root directory last
-app.use(express.static(path.join(__dirname)));
-
-// Proxy endpoint for Azure backend
-app.all('/api/*', async (req, res) => {
-    try {
-        console.log('Proxying request:', req.method, req.url);
-        
-        console.log('=== Proxy Request Debug Start ===');
-        console.log('Original URL:', req.url);
-        console.log('Original Method:', req.method);
-        console.log('Original Headers:', Object.keys(req.headers).sort());
-        
-        // Start fresh with essential headers only
-        const headers = {
-            'Accept': 'application/json',
-            'User-Agent': req.headers['user-agent'],
-            'Accept-Language': req.headers['accept-language'],
-            'Cache-Control': 'no-cache',
-            'X-Requested-With': 'XMLHttpRequest'
-        };
-        
-        // Copy authorization header if present (case-sensitive)
-        if (req.headers.authorization) {
-            headers.authorization = req.headers.authorization; // Keep lowercase
-            console.log('Authorization header copied');
-        } else {
-            console.log('WARNING: No Authorization header found!');
-        }
-        
-        // Handle Content-Type only for non-GET/HEAD requests
-        if (!(req.method === 'GET' || req.method === 'HEAD')) {
-            headers['content-type'] = 'application/json';
-            console.log('Set Content-Type for non-GET request');
-        }
-        
-        console.log('Final proxy headers:', {
-            ...headers,
-            Authorization: headers.Authorization ? '[REDACTED]' : undefined
-        });
-        console.log('=== Proxy Request Debug End ===');
-
-        // Keep the /api prefix for the backend
-        const targetPath = req.url;
-        console.log('Target path:', targetPath);
-        
-        const options = {
-            hostname: 'mstqr-portal-backend.azurewebsites.net',
-            path: targetPath,
-            method: req.method,
-            headers: headers
-        };
-
-        console.log('Proxy options:', {
-            ...options,
-            headers: { ...headers, Authorization: headers.Authorization ? '[REDACTED]' : undefined }
-        });
-
-        await new Promise((resolve, reject) => {
-            const proxyReq = https.request(options, (proxyRes) => {
-                console.log('Proxy response status:', proxyRes.statusCode);
-                console.log('Proxy response headers:', proxyRes.headers);
-
-                // Copy response headers
-                Object.keys(proxyRes.headers).forEach(key => {
-                    res.setHeader(key, proxyRes.headers[key]);
-                });
-
-                res.status(proxyRes.statusCode);
-
-                // Collect the response data
-                let responseData = '';
-                proxyRes.on('data', (chunk) => {
-                    responseData += chunk;
-                });
-
-                proxyRes.on('end', () => {
-                    console.log('Proxy response data:', responseData);
-                    res.send(responseData);
-                    resolve();
-                });
-
-                proxyRes.on('error', (error) => {
-                    console.error('Proxy response error:', error);
-                    reject(error);
-                });
-            });
-
-            proxyReq.on('error', (error) => {
-                console.error('Proxy request error:', error);
-                reject(error);
-            });
-
-            if (req.body) {
-                const bodyData = JSON.stringify(req.body);
-                proxyReq.write(bodyData);
-                console.log('Proxy request body:', bodyData);
-            }
-
-            proxyReq.end();
-        });
-    } catch (error) {
-        console.error('Proxy handler error:', error);
-        res.status(500).json({
-            error: 'Proxy Error',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
-    }
-});
+// Serve static files with caching
+app.use('/fonts', express.static(path.join(__dirname, 'public/fonts'), fontOptions));
+app.use('/js', express.static(path.join(__dirname, 'js'), staticOptions));
+app.use('/admin', express.static(path.join(__dirname, 'admin'), staticOptions));
+app.use(express.static(path.join(__dirname), staticOptions));
 
 // Route handlers
 app.get('/', (req, res) => {

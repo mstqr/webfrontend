@@ -1,25 +1,57 @@
 import { getInvitationCodes, createInvitationCode, deleteInvitationCode } from '../api.js';
 
-let codesInitialized = false;
+let currentData = null;
 
 export async function initializeInvitationCodes() {
-    if (codesInitialized) return;
-    codesInitialized = true;
-
     const codesSection = document.getElementById('invitation-codes');
     if (!codesSection) return;
 
+    // If we already have data, just re-render it
+    if (currentData) {
+        renderInvitationCodesTable(currentData);
+        return;
+    }
+
+    // Show loading state
+    codesSection.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: #64748b;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p style="margin: 0;">Loading invitation codes...</p>
+        </div>
+    `;
+
     try {
         const response = await getInvitationCodes();
-        // Get the first host's codes since that's what we have
-        const hostCodes = Object.values(response)[0];
-        if (!Array.isArray(hostCodes)) {
-            throw new Error('Invalid response format');
+        console.log('Invitation codes response:', response);
+        
+        // Handle different response formats
+        let codes = [];
+        if (Array.isArray(response)) {
+            codes = response;
+        } else if (typeof response === 'object' && response !== null) {
+            // If response is an object, try to extract codes array
+            const possibleCodes = Object.values(response)[0];
+            if (Array.isArray(possibleCodes)) {
+                codes = possibleCodes;
+            } else {
+                console.error('Unexpected response format:', response);
+                throw new Error('Invalid response format - expected array of codes');
+            }
+        } else {
+            console.error('Unexpected response type:', typeof response);
+            throw new Error('Invalid response format - unexpected type');
         }
-        renderInvitationCodesTable(hostCodes);
+        
+        currentData = codes;
+        renderInvitationCodesTable(codes);
     } catch (error) {
         console.error('Error loading invitation codes:', error);
-        codesSection.innerHTML = '<div class="error">Error loading invitation codes. Please try again later.</div>';
+        codesSection.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #dc2626;">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p style="margin: 0;">Could not load invitation codes. Please try again later.</p>
+            </div>
+        `;
     }
 }
 

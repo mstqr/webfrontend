@@ -13,6 +13,8 @@ function updateCurrentDate() {
 }
 
 // Initialize dashboard
+let currentSection = null;
+
 export async function initializeDashboard() {
     if (dashboardInitialized) return;
     
@@ -23,9 +25,11 @@ export async function initializeDashboard() {
         updateCurrentDate();
         
         // Set up section change handler
-        window.addEventListener('hashchange', () => {
+        window.addEventListener('popstate', () => {
             const sectionId = window.location.hash.slice(1) || 'overview';
-            showSection(sectionId);
+            if (sectionId !== currentSection) {
+                showSection(sectionId);
+            }
         });
         
         dashboardInitialized = true;
@@ -38,7 +42,11 @@ export async function initializeDashboard() {
 
 // Show section
 export async function showSection(sectionId) {
+    // Prevent showing the same section multiple times
+    if (sectionId === currentSection) return;
+    
     console.log('Showing section:', sectionId);
+    currentSection = sectionId;
     
     try {
         // Hide all sections
@@ -57,19 +65,25 @@ export async function showSection(sectionId) {
             selectedSection.style.display = 'block';
             
             // Initialize section content if needed
-            switch (sectionId) {
-                case 'scans':
-                    await initializeScans();
-                    break;
-                case 'invitation-codes':
-                    await initializeInvitationCodes();
-                    break;
-                case 'overview':
-                    // Handle overview initialization if needed
-                    break;
+            try {
+                switch (sectionId) {
+                    case 'scans':
+                        await initializeScans();
+                        break;
+                    case 'invitation-codes':
+                        await initializeInvitationCodes();
+                        break;
+                    case 'overview':
+                        // Handle overview initialization if needed
+                        break;
+                }
+            } catch (error) {
+                console.error(`Error initializing section ${sectionId}:`, error);
+                // Don't throw here - let the section handle its own errors
             }
         } else {
             console.warn(`Section ${sectionId} not found`);
+            return;
         }
 
         // Add active class to current nav link
@@ -86,6 +100,6 @@ export async function showSection(sectionId) {
         console.log(`Section ${sectionId} shown successfully`);
     } catch (error) {
         console.error(`Error showing section ${sectionId}:`, error);
-        throw error;
+        currentSection = null; // Reset current section on error
     }
 }

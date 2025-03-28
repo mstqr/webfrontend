@@ -1,5 +1,6 @@
 {
-    "ignore": ["node_modules/*", ".git/*"],
-    "delay": "500",
-    "verbose": true
+    "ignore": ["node_modules/*", ".git/*", "*.test.js", "*.spec.js", "dist/*"],
+    "watch": ["server.js", "js/**/*.js", "admin/**/*.js"],
+    "delay": "100",
+    "verbose": false
 }

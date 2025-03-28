@@ -1,23 +1,64 @@
 import { getScans } from '../api.js';
 
-let scansInitialized = false;
+let currentSort = null;
 
 export async function initializeScans() {
-    if (scansInitialized) return;
-    scansInitialized = true;
-
     const scansSection = document.getElementById('scans');
     if (!scansSection) return;
 
     try {
-        const response = await getScans();
+        const response = await getScans(currentSort ? { sort: currentSort } : {});
+        console.log('Scans response:', response);
+        
+        // Handle different response formats
+        if (!response) {
+            throw new Error('No response received from API');
+        }
+        
+        // If response is an array, wrap it in a pageable format
+        if (Array.isArray(response)) {
+            renderScansTable({
+                content: response,
+                totalElements: response.length,
+                size: response.length,
+                number: 0
+            });
+        }
+        // If response is already in pageable format
+        else if (response.content && Array.isArray(response.content)) {
+            renderScansTable(response);
+        }
+        else {
+            console.error('Unexpected response format:', response);
+            throw new Error('Invalid response format - expected array or pageable object');
+        }
+    } catch (error) {
+        console.error('Error loading scans:', error);
+        scansSection.innerHTML = '<div class="error">Error loading scans. Please try again later.</div>';
+    }
+}
+
+async function handleSort(property) {
+    const scansSection = document.getElementById('scans');
+    if (!scansSection) return;
+
+    try {
+        // Toggle sort direction or set initial sort
+        if (currentSort === `${property},asc`) {
+            currentSort = `${property},desc`;
+        } else if (currentSort === `${property},desc`) {
+            currentSort = null;
+        } else {
+            currentSort = `${property},asc`;
+        }
+
+        const response = await getScans(currentSort ? { sort: currentSort } : {});
         if (!response || !response.content) {
             throw new Error('Invalid response format');
         }
         renderScansTable(response);
     } catch (error) {
-        console.error('Error loading scans:', error);
-        scansSection.innerHTML = '<div class="error">Error loading scans. Please try again later.</div>';
+        console.error('Error sorting scans:', error);
     }
 }
 
@@ -54,6 +95,32 @@ function renderScansTable(scans) {
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .data-table th.sortable:hover {
+            background: #f1f5f9;
+        }
+        .data-table th .sort-indicator {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-left: 8px;
+            vertical-align: middle;
+            opacity: 0.3;
+        }
+        .data-table th[data-sort-dir="asc"] .sort-indicator {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 4px solid currentColor;
+            opacity: 1;
+        }
+        .data-table th[data-sort-dir="desc"] .sort-indicator {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid currentColor;
+            opacity: 1;
         }
         .data-table tr:last-child td {
             border-bottom: none;
@@ -87,10 +154,22 @@ function renderScansTable(scans) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>Visitor</th>
-                <th>Time</th>
-                <th>Issuer</th>
-                <th>Scanner</th>
+                <th class="sortable" data-sort="visitorName">
+                    Visitor
+                    <span class="sort-indicator"></span>
+                </th>
+                <th class="sortable" data-sort="scannedAt">
+                    Time
+                    <span class="sort-indicator"></span>
+                </th>
+                <th class="sortable" data-sort="issuerDisplayName">
+                    Issuer
+                    <span class="sort-indicator"></span>
+                </th>
+                <th class="sortable" data-sort="scannerDisplayName">
+                    Scanner
+                    <span class="sort-indicator"></span>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -123,4 +202,25 @@ function renderScansTable(scans) {
     // Update the section
     scansSection.innerHTML = '';
     scansSection.appendChild(table);
+
+    // Add click handlers for sortable columns
+    const sortableHeaders = table.querySelectorAll('th.sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const property = header.dataset.sort;
+            handleSort(property);
+        });
+
+        // Update sort indicators
+        if (currentSort) {
+            const [sortProperty, sortDirection] = currentSort.split(',');
+            if (header.dataset.sort === sortProperty) {
+                header.setAttribute('data-sort-dir', sortDirection);
+            } else {
+                header.removeAttribute('data-sort-dir');
+            }
+        } else {
+            header.removeAttribute('data-sort-dir');
+        }
+    });
 }
