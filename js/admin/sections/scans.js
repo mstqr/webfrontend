@@ -3,6 +3,8 @@ import { getScans } from '../api.js';
 let currentSort = 'scannedAt,desc';
 let startDate = null;
 let endDate = null;
+let currentPage = 0;
+let pageSize = 20;
 
 export async function initializeScans() {
     const scansSection = document.getElementById('scans');
@@ -75,8 +77,13 @@ async function loadScans() {
     }
 
     try {
-        // Ensure sort parameter is properly formatted
-        const params = {};
+        // Set up parameters with pagination
+        const params = {
+            page: currentPage,
+            size: pageSize
+        };
+        
+        // Add sort parameter if available
         if (currentSort) {
             const [field, direction] = currentSort.split(',');
             params.sort = `${field},${direction}`;
@@ -141,26 +148,11 @@ async function handleSort(property) {
             currentSort = `${property},desc`; // Default to desc when no sort
         }
 
-        // Ensure sort parameter is properly formatted
-        const params = {};
-        if (currentSort) {
-            const [field, direction] = currentSort.split(',');
-            params.sort = `${field},${direction}`;
-        }
+        // Reset to first page when sorting changes
+        currentPage = 0;
         
-        // Add date range parameters if provided
-        if (startDate) {
-            params.startDate = startDate;
-        }
-        if (endDate) {
-            params.endDate = endDate;
-        }
-
-        const response = await getScans(params);
-        if (!response || !response.content) {
-            throw new Error('Invalid response format');
-        }
-        renderScansTable(response);
+        // Load scans with new sort parameters
+        loadScans();
     } catch (error) {
         console.error('Error sorting scans:', error);
     }
@@ -212,9 +204,49 @@ function renderScansTable(scans) {
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner';
 
-    // Add table and filter styles
+    // Add table, filter, and pagination styles
     const style = document.createElement('style');
     style.textContent = `
+        .pagination-controls {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pagination-btn:hover:not([disabled]) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .pagination-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .pagination-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .date-filter {
             margin-top: 1rem;
             background: white;
@@ -411,12 +443,75 @@ function renderScansTable(scans) {
         </tbody>
     `;
     
+    // Create pagination controls if we have pageable data
+    const pagination = document.createElement('div');
+    pagination.className = 'pagination-controls';
+    
+    if (scans.totalPages && scans.totalPages > 1) {
+        const totalPages = scans.totalPages;
+        const currentPageNum = scans.number;
+        
+        // Create pagination HTML
+        let paginationHTML = '<div class="pagination-info">Page ' + (currentPageNum + 1) + ' of ' + totalPages + '</div>';
+        paginationHTML += '<div class="pagination-buttons">';
+        
+        // Previous button
+        paginationHTML += `<button class="pagination-btn prev-page" ${currentPageNum === 0 ? 'disabled' : ''}>&laquo; Previous</button>`;
+        
+        // Page buttons
+        const startPage = Math.max(0, currentPageNum - 2);
+        const endPage = Math.min(totalPages - 1, currentPageNum + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `<button class="pagination-btn page-number ${i === currentPageNum ? 'active' : ''}" data-page="${i}">${i + 1}</button>`;
+        }
+        
+        // Next button
+        paginationHTML += `<button class="pagination-btn next-page" ${currentPageNum >= totalPages - 1 ? 'disabled' : ''}>Next &raquo;</button>`;
+        paginationHTML += '</div>';
+        
+        pagination.innerHTML = paginationHTML;
+        
+        // Add event listeners for pagination buttons
+        setTimeout(() => {
+            // Previous page button
+            const prevButton = pagination.querySelector('.prev-page');
+            if (prevButton && !prevButton.hasAttribute('disabled')) {
+                prevButton.addEventListener('click', () => {
+                    currentPage = Math.max(0, currentPageNum - 1);
+                    loadScans();
+                });
+            }
+            
+            // Next page button
+            const nextButton = pagination.querySelector('.next-page');
+            if (nextButton && !nextButton.hasAttribute('disabled')) {
+                nextButton.addEventListener('click', () => {
+                    currentPage = Math.min(totalPages - 1, currentPageNum + 1);
+                    loadScans();
+                });
+            }
+            
+            // Page number buttons
+            const pageButtons = pagination.querySelectorAll('.page-number');
+            pageButtons.forEach(button => {
+                if (!button.classList.contains('active')) {
+                    button.addEventListener('click', () => {
+                        currentPage = parseInt(button.dataset.page);
+                        loadScans();
+                    });
+                }
+            });
+        }, 0);
+    }
+    
     // Update the section
     scansSection.innerHTML = '';
     container.appendChild(header);
     container.appendChild(dateFilter);
     container.appendChild(spinner);
     container.appendChild(table);
+    container.appendChild(pagination);
     scansSection.appendChild(style);
     scansSection.appendChild(container);
 
