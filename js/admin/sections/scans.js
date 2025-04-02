@@ -1,10 +1,213 @@
 import { getScans } from '../api.js';
 
+// Using native browser capabilities for exports instead of external libraries
+// to comply with Content Security Policy
+
 let currentSort = 'scannedAt,desc';
 let startDate = null;
 let endDate = null;
 let currentPage = 0;
 let pageSize = 20;
+
+// Export to CSV function (works natively in browsers)
+function exportToCSV() {
+    try {
+        // Show loading indicator
+        const scansSection = document.getElementById('scans');
+        scansSection.classList.add('loading');
+        
+        // Get current scans data
+        const scansTable = document.querySelector('#scans .data-table');
+        if (!scansTable) {
+            throw new Error('No scans data available to export');
+        }
+        
+        // Extract table data
+        const headers = [];
+        const rows = [];
+        
+        // Get headers
+        const headerCells = scansTable.querySelectorAll('thead th');
+        headerCells.forEach(cell => {
+            headers.push(cell.textContent.trim());
+        });
+        
+        // Get rows
+        const rowElements = scansTable.querySelectorAll('tbody tr');
+        rowElements.forEach(row => {
+            if (!row.querySelector('td[colspan]')) { // Skip empty state row
+                const rowData = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // Escape quotes and wrap in quotes if contains comma
+                    let cellText = cell.textContent.trim();
+                    if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                        cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                    }
+                    rowData.push(cellText);
+                });
+                rows.push(rowData);
+            }
+        });
+        
+        // Create CSV content
+        let csvContent = headers.join(',') + '\n';
+        rows.forEach(row => {
+            csvContent += row.join(',') + '\n';
+        });
+        
+        // Add metadata as a comment at the top
+        let metadata = '# Scans Report\n';
+        if (startDate || endDate) {
+            metadata += '# Date Range: ';
+            if (startDate) {
+                metadata += startDate.split('T')[0];
+            } else {
+                metadata += 'All';
+            }
+            metadata += ' to ';
+            if (endDate) {
+                metadata += endDate.split('T')[0];
+            } else {
+                metadata += 'Present';
+            }
+            metadata += '\n';
+        }
+        metadata += '# Generated on: ' + new Date().toLocaleString() + '\n\n';
+        
+        // Combine metadata and CSV content
+        const fullContent = metadata + csvContent;
+        
+        // Create download link
+        const blob = new Blob([fullContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'scans-report.csv';
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 100);
+        
+        // Hide loading indicator
+        scansSection.classList.remove('loading');
+    } catch (error) {
+        console.error('Error exporting to CSV:', error);
+        alert('Failed to export CSV. Please try again later.');
+        
+        // Hide loading indicator
+        const scansSection = document.getElementById('scans');
+        scansSection.classList.remove('loading');
+    }
+}
+
+// Export to HTML table function (for printing)
+function exportToPrint() {
+    try {
+        // Show loading indicator
+        const scansSection = document.getElementById('scans');
+        scansSection.classList.add('loading');
+        
+        // Get current scans data
+        const scansTable = document.querySelector('#scans .data-table');
+        if (!scansTable) {
+            throw new Error('No scans data available to export');
+        }
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            throw new Error('Pop-up blocked. Please allow pop-ups for this site to print.');
+        }
+        
+        // Create HTML content
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Scans Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1 { font-size: 18px; margin-bottom: 10px; }
+                    .metadata { font-size: 12px; margin-bottom: 20px; color: #666; }
+                    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                    tr:nth-child(even) { background-color: #f9f9f9; }
+                    @media print {
+                        .no-print { display: none; }
+                        body { margin: 0; }
+                        h1 { font-size: 14px; }
+                        th, td { padding: 5px; font-size: 12px; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Scans Report</h1>
+                <div class="metadata">
+        `;
+        
+        // Add date range if applied
+        if (startDate || endDate) {
+            htmlContent += '<div>Date Range: ';
+            if (startDate) {
+                htmlContent += startDate.split('T')[0];
+            } else {
+                htmlContent += 'All';
+            }
+            htmlContent += ' to ';
+            if (endDate) {
+                htmlContent += endDate.split('T')[0];
+            } else {
+                htmlContent += 'Present';
+            }
+            htmlContent += '</div>';
+        }
+        
+        // Add generation timestamp
+        htmlContent += `<div>Generated on: ${new Date().toLocaleString()}</div>`;
+        htmlContent += `</div>`;
+        
+        // Add print button
+        htmlContent += `
+            <div class="no-print" style="margin-bottom: 20px;">
+                <button onclick="window.print()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Print Report
+                </button>
+                <button onclick="window.close()" style="padding: 8px 16px; margin-left: 10px; background: #f1f5f9; color: #475569; border: none; border-radius: 4px; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        `;
+        
+        // Clone the table and add to HTML content
+        const tableClone = scansTable.cloneNode(true);
+        htmlContent += tableClone.outerHTML;
+        
+        // Close HTML tags
+        htmlContent += `
+            </body>
+            </html>
+        `;
+        
+        // Write to the new window and prepare for printing
+        printWindow.document.open();
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Hide loading indicator
+        scansSection.classList.remove('loading');
+    } catch (error) {
+        console.error('Error preparing print view:', error);
+        alert(error.message || 'Failed to prepare print view. Please try again later.');
+        
+        // Hide loading indicator
+        const scansSection = document.getElementById('scans');
+        scansSection.classList.remove('loading');
+    }
+}
 
 export async function initializeScans() {
     const scansSection = document.getElementById('scans');
@@ -29,10 +232,16 @@ export async function initializeScans() {
         initialSpinner.remove();
     }
 
-    // Add refresh button and date filter event listeners
+    // Add refresh, export, and date filter event listeners
     document.addEventListener('click', (e) => {
         if (e.target.closest('#scans .refresh-button')) {
             loadScans();
+        }
+        if (e.target.closest('#scans .export-csv-button')) {
+            exportToCSV();
+        }
+        if (e.target.closest('#scans .export-print-button')) {
+            exportToPrint();
         }
         if (e.target.closest('#scans .apply-date-filter')) {
             const startDateInput = document.getElementById('scan-start-date');
@@ -165,17 +374,39 @@ function renderScansTable(scans) {
     const container = document.createElement('div');
     container.className = 'section-panel';
 
-    // Create header with refresh button
+    // Create header with refresh and export buttons
     const header = document.createElement('div');
     header.className = 'section-header';
     header.innerHTML = `
         <h2>Recent Scans</h2>
-        <button class="refresh-button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12a9 9 0 11-2.2-5.8M21 3v6h-6" />
-            </svg>
-            Refresh
-        </button>
+        <div class="header-actions">
+            <div class="export-buttons">
+                <button class="export-csv-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Export CSV
+                </button>
+                <button class="export-print-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Print
+                </button>
+            </div>
+            <button class="refresh-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 11-2.2-5.8M21 3v6h-6" />
+                </svg>
+                Refresh
+            </button>
+        </div>
     `;
     
     // Create date filter controls
@@ -204,9 +435,40 @@ function renderScansTable(scans) {
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner';
 
-    // Add table, filter, and pagination styles
+    // Add table, filter, pagination, and export button styles
     const style = document.createElement('style');
     style.textContent = `
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .export-csv-button, .export-print-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .export-csv-button:hover, .export-print-button:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        .export-csv-button svg, .export-print-button svg {
+            width: 16px;
+            height: 16px;
+        }
         .pagination-controls {
             margin-top: 1.5rem;
             display: flex;
