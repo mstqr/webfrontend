@@ -1,6 +1,8 @@
 import { getScans } from '../api.js';
 
 let currentSort = 'scannedAt,desc';
+let startDate = null;
+let endDate = null;
 
 export async function initializeScans() {
     const scansSection = document.getElementById('scans');
@@ -25,9 +27,39 @@ export async function initializeScans() {
         initialSpinner.remove();
     }
 
-    // Add refresh button event listener
+    // Add refresh button and date filter event listeners
     document.addEventListener('click', (e) => {
         if (e.target.closest('#scans .refresh-button')) {
+            loadScans();
+        }
+        if (e.target.closest('#scans .apply-date-filter')) {
+            const startDateInput = document.getElementById('scan-start-date');
+            const endDateInput = document.getElementById('scan-end-date');
+            
+            // Format dates with time components
+            if (startDateInput.value) {
+                startDate = `${startDateInput.value}T00:00:00`;
+            } else {
+                startDate = null;
+            }
+            
+            if (endDateInput.value) {
+                endDate = `${endDateInput.value}T23:59:59`;
+            } else {
+                endDate = null;
+            }
+            
+            loadScans();
+        }
+        if (e.target.closest('#scans .clear-date-filter')) {
+            const startDateInput = document.getElementById('scan-start-date');
+            const endDateInput = document.getElementById('scan-end-date');
+            
+            startDateInput.value = '';
+            endDateInput.value = '';
+            startDate = null;
+            endDate = null;
+            
             loadScans();
         }
     });
@@ -48,6 +80,14 @@ async function loadScans() {
         if (currentSort) {
             const [field, direction] = currentSort.split(',');
             params.sort = `${field},${direction}`;
+        }
+        
+        // Add date range parameters if provided
+        if (startDate) {
+            params.startDate = startDate;
+        }
+        if (endDate) {
+            params.endDate = endDate;
         }
         console.log('Fetching scans with params:', params);
         const response = await getScans(params);
@@ -107,6 +147,14 @@ async function handleSort(property) {
             const [field, direction] = currentSort.split(',');
             params.sort = `${field},${direction}`;
         }
+        
+        // Add date range parameters if provided
+        if (startDate) {
+            params.startDate = startDate;
+        }
+        if (endDate) {
+            params.endDate = endDate;
+        }
 
         const response = await getScans(params);
         if (!response || !response.content) {
@@ -137,14 +185,101 @@ function renderScansTable(scans) {
             Refresh
         </button>
     `;
+    
+    // Create date filter controls
+    const dateFilter = document.createElement('div');
+    dateFilter.className = 'date-filter';
+    dateFilter.innerHTML = `
+        <div class="filter-controls">
+            <div class="date-inputs">
+                <div class="input-group">
+                    <label for="scan-start-date">Start Date</label>
+                    <input type="date" id="scan-start-date" value="${startDate || ''}">
+                </div>
+                <div class="input-group">
+                    <label for="scan-end-date">End Date</label>
+                    <input type="date" id="scan-end-date" value="${endDate || ''}">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="apply-date-filter">Apply Filter</button>
+                <button class="clear-date-filter">Clear</button>
+            </div>
+        </div>
+    `;
 
     // Create loading spinner
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner';
 
-    // Add table styles
+    // Add table and filter styles
     const style = document.createElement('style');
     style.textContent = `
+        .date-filter {
+            margin-top: 1rem;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+        }
+        .date-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            flex: 1;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .apply-date-filter, .clear-date-filter {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .apply-date-filter {
+            background: #3b82f6;
+            color: white;
+        }
+        .apply-date-filter:hover {
+            background: #2563eb;
+        }
+        .clear-date-filter {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .clear-date-filter:hover {
+            background: #e2e8f0;
+        }
         .data-table {
             width: 100%;
             border-collapse: separate;
@@ -279,6 +414,7 @@ function renderScansTable(scans) {
     // Update the section
     scansSection.innerHTML = '';
     container.appendChild(header);
+    container.appendChild(dateFilter);
     container.appendChild(spinner);
     container.appendChild(table);
     scansSection.appendChild(style);

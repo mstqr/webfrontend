@@ -170,6 +170,13 @@ export async function getScans(params = {}) {
     if (params.sort) {
         defaultParams.sort = params.sort;
     }
+    // Add date range parameters if provided
+    if (params.startDate) {
+        defaultParams.startDate = params.startDate;
+    }
+    if (params.endDate) {
+        defaultParams.endDate = params.endDate;
+    }
     const queryString = new URLSearchParams(defaultParams).toString();
     return fetchWithAuth(`/api/admin/scans?${queryString}`);
 }

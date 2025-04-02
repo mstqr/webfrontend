@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net https://*.gstatic.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.gstatic.com; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.firebaseio.com https://cdn.jsdelivr.net https://*.gstatic.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net https://*.gstatic.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.emailjs.com https://*.azurewebsites.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https://*.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.firebaseio.com https://cdn.jsdelivr.net https://*.gstatic.com;">
     <meta name="password-manager-icon" content="none">
     <meta name="google" content="notranslate">
     <meta name="format-detection" content="telephone=no,email=no,address=no">
@@ -30,10 +30,34 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required autocomplete="new-password" data-form-type="other" data-lpignore="true" data-webauthn="off">
+                    <div class="forgot-password-container">
+                        <a href="#" id="forgot-password-link">Forgot password?</a>
+                    </div>
                 </div>
                 <button type="submit" class="login-btn">Login</button>
             </form>
             <div id="error-message" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="password-reset-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reset Password</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address and we'll send you a link to reset your password.</p>
+                <form id="reset-password-form">
+                    <div class="form-group">
+                        <label for="reset-email">Email</label>
+                        <input type="email" id="reset-email" name="reset-email" required>
+                    </div>
+                    <button type="submit" class="reset-btn">Send Reset Link</button>
+                </form>
+                <div id="reset-message" class="reset-message"></div>
+            </div>
         </div>
     </div>
 

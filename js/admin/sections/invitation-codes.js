@@ -119,30 +119,6 @@ function renderInvitationCodesTable(codes, filter = 'all') {
             color: #1e293b;
         }
 
-        .refresh-button {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border: 1px solid #e2e8f0;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-
-        .refresh-button:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
-        .refresh-button svg {
-            width: 16px;
-            height: 16px;
-        }
-
         .data-table {
             width: 100%;
             border-collapse: collapse;

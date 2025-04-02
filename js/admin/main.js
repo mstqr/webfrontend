@@ -1,4 +1,4 @@
-import { initializeAuth, handleLogin, logout } from './auth.js';
+import { initializeAuth, handleLogin, logout, initPasswordResetUI } from './auth.js';
 import { initializeDashboard, showSection } from './dashboard.js';
 import { initializeOverview } from './sections/overview.js';
 
@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (loginForm) {
             console.log('Setting up login form handler');
             loginForm.addEventListener('submit', handleLogin);
+            
+            // Initialize password reset UI
+            initPasswordResetUI();
         }
         
         // Set up dashboard handlers if we're on the dashboard page
