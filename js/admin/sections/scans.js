@@ -1,11 +1,13 @@
 import { getScans } from '../api.js';
 
-let currentSort = null;
+let currentSort = 'scannedAt,desc';
 
 export async function initializeScans() {
     const scansSection = document.getElementById('scans');
     if (!scansSection) return;
 
+    // Set initial sort to newest first
+    currentSort = 'scannedAt,desc';
     await loadScans();
 
     // Add refresh button event listener
@@ -24,7 +26,14 @@ async function loadScans() {
     scansSection.classList.add('loading');
 
     try {
-        const response = await getScans(currentSort ? { sort: currentSort } : {});
+        // Ensure sort parameter is properly formatted
+        const params = {};
+        if (currentSort) {
+            const [field, direction] = currentSort.split(',');
+            params.sort = `${field},${direction}`;
+        }
+        console.log('Fetching scans with params:', params);
+        const response = await getScans(params);
         console.log('Scans response:', response);
         
         // Handle different response formats
@@ -63,16 +72,26 @@ async function handleSort(property) {
     if (!scansSection) return;
 
     try {
-        // Toggle sort direction or set initial sort
+        // Only allow sorting on scannedAt
+        if (property !== 'scannedAt') return;
+
+        // Toggle sort direction
         if (currentSort === `${property},asc`) {
             currentSort = `${property},desc`;
         } else if (currentSort === `${property},desc`) {
-            currentSort = null;
-        } else {
             currentSort = `${property},asc`;
+        } else {
+            currentSort = `${property},desc`; // Default to desc when no sort
         }
 
-        const response = await getScans(currentSort ? { sort: currentSort } : {});
+        // Ensure sort parameter is properly formatted
+        const params = {};
+        if (currentSort) {
+            const [field, direction] = currentSort.split(',');
+            params.sort = `${field},${direction}`;
+        }
+
+        const response = await getScans(params);
         if (!response || !response.content) {
             throw new Error('Invalid response format');
         }
@@ -136,9 +155,12 @@ function renderScansTable(scans) {
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.05em;
-            cursor: pointer;
             user-select: none;
             position: relative;
+            cursor: default;
+        }
+        .data-table th.sortable {
+            cursor: pointer;
         }
         .data-table th.sortable:hover {
             background: #f1f5f9;
@@ -195,21 +217,18 @@ function renderScansTable(scans) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th class="sortable" data-sort="visitorName">
+                <th>
                     Visitor
-                    <span class="sort-indicator"></span>
                 </th>
                 <th class="sortable" data-sort="scannedAt">
                     Time
                     <span class="sort-indicator"></span>
                 </th>
-                <th class="sortable" data-sort="issuerDisplayName">
+                <th>
                     Issuer
-                    <span class="sort-indicator"></span>
                 </th>
-                <th class="sortable" data-sort="scannerDisplayName">
+                <th>
                     Scanner
-                    <span class="sort-indicator"></span>
                 </th>
             </tr>
         </thead>
