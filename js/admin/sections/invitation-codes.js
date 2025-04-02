@@ -5,8 +5,23 @@ let currentData = null;
 export async function initializeInvitationCodes() {
     const codesSection = document.getElementById('invitation-codes');
     if (!codesSection) return;
+    
+    // Show loading state immediately
+    codesSection.classList.add('loading');
+    
+    // Add loading spinner
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'loading-container';
+    loadingContainer.innerHTML = '<div class="loading-spinner"></div>';
+    codesSection.appendChild(loadingContainer);
 
     await loadInvitationCodes();
+    
+    // Remove the initial loading spinner after data is loaded
+    const initialSpinner = codesSection.querySelector('.loading-container');
+    if (initialSpinner) {
+        initialSpinner.remove();
+    }
 
     // Add refresh button event listener
     document.addEventListener('click', (e) => {
@@ -20,8 +35,10 @@ async function loadInvitationCodes() {
     const codesSection = document.getElementById('invitation-codes');
     if (!codesSection) return;
 
-    // Show loading state
-    codesSection.classList.add('loading');
+    // Show loading state (only if not already loading)
+    if (!codesSection.classList.contains('loading')) {
+        codesSection.classList.add('loading');
+    }
 
     try {
         const response = await getInvitationCodes();
@@ -168,8 +185,8 @@ function renderInvitationCodesTable(codes, filter = 'all') {
             background: #f8fafc;
         }
         .filter-button.active {
-            background: #0284c7;
-            border-color: #0284c7;
+            background: #00c853;
+            border-color: #00c853;
             color: white;
         }
         .used-badge {

@@ -5,10 +5,25 @@ let currentSort = 'scannedAt,desc';
 export async function initializeScans() {
     const scansSection = document.getElementById('scans');
     if (!scansSection) return;
+    
+    // Show loading state immediately
+    scansSection.classList.add('loading');
+    
+    // Add loading spinner
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'loading-container';
+    loadingContainer.innerHTML = '<div class="loading-spinner"></div>';
+    scansSection.appendChild(loadingContainer);
 
     // Set initial sort to newest first
     currentSort = 'scannedAt,desc';
     await loadScans();
+    
+    // Remove the initial loading spinner after data is loaded
+    const initialSpinner = scansSection.querySelector('.loading-container');
+    if (initialSpinner) {
+        initialSpinner.remove();
+    }
 
     // Add refresh button event listener
     document.addEventListener('click', (e) => {
@@ -22,8 +37,10 @@ async function loadScans() {
     const scansSection = document.getElementById('scans');
     if (!scansSection) return;
 
-    // Show loading state
-    scansSection.classList.add('loading');
+    // Show loading state (only if not already loading)
+    if (!scansSection.classList.contains('loading')) {
+        scansSection.classList.add('loading');
+    }
 
     try {
         // Ensure sort parameter is properly formatted
