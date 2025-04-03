@@ -1,6 +1,7 @@
 import { initializeScans } from './sections/scans.js';
 import { initializeInvitationCodes } from './sections/invitation-codes.js';
 import { initializeOverview } from './sections/overview.js';
+import { initializeUsers } from './sections/users.js';
 
 let dashboardInitialized = false;
 
@@ -76,6 +77,9 @@ export async function showSection(sectionId) {
                         break;
                     case 'overview':
                         await initializeOverview();
+                        break;
+                    case 'users':
+                        await initializeUsers();
                         break;
                 }
             } catch (error) {

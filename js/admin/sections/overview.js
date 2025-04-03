@@ -22,6 +22,10 @@ export async function initializeOverview() {
                 <div class="action-icon">🎟️</div>
                 <h3>View Invitation Codes</h3>
             </a>
+            <a href="#users" class="action-card" data-section="users">
+                <div class="action-icon">👥</div>
+                <h3>View Users</h3>
+            </a>
         </div>
     `;
 

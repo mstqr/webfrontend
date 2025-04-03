@@ -215,3 +215,10 @@ export async function getPasses(params = {}) {
 export async function getScanners() {
     return fetchWithAuth('/api/admin/scanners');
 }
+
+// Users API
+export async function getUsers() {
+    return fetchWithAuth('/api/users');
+}
+
+
