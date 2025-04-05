@@ -221,4 +221,17 @@ export async function getUsers() {
     return fetchWithAuth('/api/users');
 }
 
+export async function changeUserHost(uid) {
+    return fetchWithAuth(`/api/users/${uid}/host`, {
+        method: 'DELETE'
+    });
+}
 
+export async function changeUserRole(uid, role) {
+    if (role !== 'SCANNER' && role !== 'STANDARD') {
+        throw new Error('Invalid role. Role must be either SCANNER or STANDARD');
+    }
+    return fetchWithAuth(`/api/users/${uid}/role/${role}`, {
+        method: 'PUT'
+    });
+}

@@ -173,7 +173,7 @@ function exportToPrint() {
         // Add print button
         htmlContent += `
             <div class="no-print" style="margin-bottom: 20px;">
-                <button onclick="window.print()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <button onclick="window.print()" style="padding: 8px 16px; background: #00c853; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Print Report
                 </button>
                 <button onclick="window.close()" style="padding: 8px 16px; margin-left: 10px; background: #f1f5f9; color: #475569; border: none; border-radius: 4px; cursor: pointer;">
@@ -501,9 +501,9 @@ function renderScansTable(scans) {
             border-color: #cbd5e1;
         }
         .pagination-btn.active {
-            background: #3b82f6;
+            background: #00c853;
             color: white;
-            border-color: #3b82f6;
+            border-color: #00c853;
         }
         .pagination-btn[disabled] {
             opacity: 0.5;
@@ -561,7 +561,7 @@ function renderScansTable(scans) {
             border: none;
         }
         .apply-date-filter {
-            background: #3b82f6;
+            background: #00c853;
             color: white;
         }
         .apply-date-filter:hover {

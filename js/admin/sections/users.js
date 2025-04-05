@@ -1,4 +1,4 @@
-import { getUsers } from '../api.js';
+import { getUsers, changeUserHost, changeUserRole } from '../api.js';
 
 let currentData = null;
 
@@ -223,6 +223,16 @@ function renderUsersTable(users) {
             z-index: 10;
         }
         
+        .button-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: currentColor;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -244,6 +254,11 @@ function renderUsersTable(users) {
         }
         .action-button.delete:hover {
             color: #b91c1c;
+        }
+        
+        .actions {
+            white-space: nowrap;
+            text-align: right;
         }
     `;
     document.head.appendChild(style);
@@ -287,6 +302,7 @@ function renderUsersTable(users) {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Actions</th>
             </tr>
         `;
         table.appendChild(thead);
@@ -310,6 +326,22 @@ function renderUsersTable(users) {
                 <td>
                     <span class="role-badge ${user.role === 'SCANNER' ? 'scanner' : ''}">${user.role || '-'}</span>
                 </td>
+                <td class="actions">
+                    <button class="action-button change-host delete" data-uid="${user.id}" title="Delete User">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                    <button class="action-button change-role" data-uid="${user.id}" data-current-role="${user.role || ''}" title="${user.role === 'SCANNER' ? 'Change to STANDARD user' : 'Change to SCANNER user'}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -330,5 +362,76 @@ function renderUsersTable(users) {
 }
 
 function setupUserFormHandlers() {
-    // No form handlers needed since we removed the add user functionality
+    const usersSection = document.getElementById('users');
+    if (!usersSection) return;
+    
+    // Add event listener for changing host
+    usersSection.addEventListener('click', async (e) => {
+        const changeHostBtn = e.target.closest('.change-host');
+        if (changeHostBtn) {
+            const uid = changeHostBtn.dataset.uid;
+            if (!uid) return;
+            
+            if (confirm('Are you sure you want to delete this user\'s host?')) {
+                try {
+                    // Show loading state
+                    changeHostBtn.disabled = true;
+                    changeHostBtn.innerHTML = '<div class="button-spinner"></div>';
+                    
+                    await changeUserHost(uid);
+                    alert('User host deleted successfully');
+                    
+                    // Reload users to reflect changes
+                    await loadUsers();
+                } catch (error) {
+                    console.error('Error deleting user host:', error);
+                    alert(`Error deleting user host: ${error.message}`);
+                    changeHostBtn.disabled = false;
+                    changeHostBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    `;
+                }
+            }
+        }
+        
+        // Handle role change
+        const changeRoleBtn = e.target.closest('.change-role');
+        if (changeRoleBtn) {
+            const uid = changeRoleBtn.dataset.uid;
+            const currentRole = changeRoleBtn.dataset.currentRole;
+            if (!uid) return;
+            
+            // Determine the new role (toggle between SCANNER and STANDARD)
+            const newRole = currentRole === 'SCANNER' ? 'STANDARD' : 'SCANNER';
+            
+            if (confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+                try {
+                    // Show loading state
+                    changeRoleBtn.disabled = true;
+                    changeRoleBtn.innerHTML = '<div class="button-spinner"></div>';
+                    
+                    await changeUserRole(uid, newRole);
+                    alert(`User role changed to ${newRole} successfully`);
+                    
+                    // Reload users to reflect changes
+                    await loadUsers();
+                } catch (error) {
+                    console.error('Error changing user role:', error);
+                    alert(`Error changing user role: ${error.message}`);
+                    changeRoleBtn.disabled = false;
+                    changeRoleBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    `;
+                }
+            }
+        }
+    });
 }
