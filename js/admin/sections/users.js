@@ -125,6 +125,9 @@ function renderUsersTable(users) {
     const usersSection = document.getElementById('users');
     if (!usersSection) return;
     
+    // Filter out users that don't have both email and name
+    const filteredUsers = users.filter(user => user.email && user.name);
+    
     // Add styles
     const style = document.createElement('style');
     style.textContent = `
@@ -285,7 +288,7 @@ function renderUsersTable(users) {
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
     
-    if (users.length === 0) {
+    if (filteredUsers.length === 0) {
         tableContainer.innerHTML = `
             <div class="empty-state">
                 <p>No users found.</p>
@@ -309,7 +312,7 @@ function renderUsersTable(users) {
         
         // Create table body
         const tbody = document.createElement('tbody');
-        users.forEach(user => {
+        filteredUsers.forEach(user => {
             const tr = document.createElement('tr');
             
             // Format date
