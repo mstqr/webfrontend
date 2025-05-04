@@ -27,15 +27,20 @@ document.getElementById('waitlistForm').addEventListener('submit', async functio
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = '';
     messageDiv.className = '';
-    // Validate phone: must be 10 or 11 digits, no country code, only numbers
-    if (!/^[0-9]{10,11}$/.test(phone)) {
-        messageDiv.textContent = 'Please enter a valid phone number (10 or 11 digits, no country code).';
+    // Validate phone: allow with or without country code, but store only last 10 or 11 digits
+    let normalizedPhone = phone.replace(/\D/g, ''); // Remove all non-digits
+    if (normalizedPhone.length > 11) {
+        // Assume country code is present, take last 10 or 11 digits
+        normalizedPhone = normalizedPhone.slice(-11);
+    }
+    if (!/^[0-9]{10,11}$/.test(normalizedPhone)) {
+        messageDiv.textContent = 'Please enter a valid phone number (10 or 11 digits, with or without country code).';
         messageDiv.classList.add('error');
         return;
     }
     try {
         await db.collection('waitlist').add({
-            phone: phone,
+            phone: normalizedPhone,
             joinedAt: new Date()
         });
         // Hide form and show visual confirmation
