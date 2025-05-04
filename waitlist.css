@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f6f8fa;
+}
+
+.waitlist-container {
+  background: #fff;
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 32px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  text-align: center;
+  border-top: 6px solid #17b85e;
+}
+
+.waitlist-container h2 {
+  margin-bottom: 18px;
+  color: #17b85e;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+#waitlistForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#waitlistForm label {
+  font-size: 1rem;
+  color: #444;
+  text-align: left;
+}
+
+#waitlistForm input[type="tel"] {
+  padding: 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s;
+}
+
+#waitlistForm input[type="tel"]:focus {
+  border: 1.5px solid #17b85e;
+  box-shadow: 0 0 0 2px #e5fbe9;
+}
+
+#waitlistForm button {
+  padding: 12px;
+  background: #17b85e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(30, 215, 96, 0.07);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+#waitlistForm button:hover {
+  background: #17b85e;
+  box-shadow: 0 4px 18px rgba(30, 215, 96, 0.13);
+}
+
+#message {
+  margin-top: 18px;
+  font-size: 1rem;
+  min-height: 24px;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+#message.success {
+  color: #17b85e;
+  background: #e7fbe9;
+  border: 1px solid #b8eac5;
+}
+
+#message.error {
+  color: #c62828;
+  background: #fdeaea;
+  border: 1px solid #f3bcbc;
+}
+
+/* Logo size and accent */
+.waitlist-logo {
+  height: 44px;
+  margin-bottom: 18px;
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .waitlist-container {
+    max-width: 95vw;
+    margin: 24px auto;
+    padding: 18px 6vw;
+    border-radius: 8px;
+  }
+  #waitlistForm button, #waitlistForm input[type="tel"] {
+    font-size: 1rem;
+    padding: 10px;
+  }
+  .waitlist-container h2 {
+    font-size: 1.15rem;
+  }
+  .waitlist-logo {
+    height: 34px;
+  }
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Waitlist</title>
+    <meta name="theme-color" content="#007aff">
+    <link rel="stylesheet" href="waitlist.css">
+</head>
+<body>
+    <div class="waitlist-container">
+        <img src="assets/logo.png" alt="MSTQR Logo" class="waitlist-logo">
+        <h2>Join the MSTQR Waitlist</h2>
+        <form id="waitlistForm" autocomplete="off">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required placeholder="e.g. 01010941494">
+            <button type="submit">Join Waitlist</button>
+        </form>
+        <div id="message" aria-live="polite"></div>
+        <div id="success-visual" style="display:none; margin-top:32px;">
+            <img src="assets/icons/success.svg" alt="Success" style="height:56px; margin-bottom:12px;">
+            <div class="success-message-big">You’ve joined the waitlist!</div>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="js/waitlist.js"></script>
+</body>
+</html>
