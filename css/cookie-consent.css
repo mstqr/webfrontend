@@ -1,0 +1,30 @@
+#cookie-consent-banner {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #222;
+    color: #fff;
+    padding: 18px 16px;
+    z-index: 10000;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+#cookie-consent-banner .cookie-consent-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+#cookie-consent-banner a {
+    color: #4dd599;
+    text-decoration: underline;
+}
+#cookie-consent-banner button {
+    background: #4dd599;
+    color: #222;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}

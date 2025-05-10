@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Get Started - MSTQR</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- GDPR: Cookie Consent Banner Styles -->
+    <link rel="stylesheet" href="css/cookie-consent.css">
     <link rel="stylesheet" href="css/additional-styles.css">
 </head>
 <body>
@@ -22,7 +24,6 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="index.html#features">Features</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li><a href="account-deletion.html">Delete Account</a></li>
                 <li><a href="privacy-policy.html">Privacy Policy</a></li>
             </ul>
         </nav>
@@ -70,6 +71,12 @@
                             <label for="message">Additional Information</label>
                             <textarea id="message" name="message" rows="4"></textarea>
                         </div>
+                        <div class="form-group gdpr-checkbox">
+                            <input type="checkbox" id="gdprConsentGetStarted" name="gdprConsentGetStarted" required>
+                            <label for="gdprConsentGetStarted">
+                                I agree to the processing of my data according to the <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.
+                            </label>
+                        </div>
                         <button type="submit" class="primary-btn">Submit Request</button>
                     </form>
                 </div>
@@ -116,7 +123,6 @@
                     <h4>Legal</h4>
                     <ul>
                         <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                        <li><a href="account-deletion.html">Account Deletion</a></li>
                     </ul>
                 </div>
             </div>
@@ -128,5 +134,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <script src="js/main.js"></script>
+    <!-- GDPR: Cookie Consent Banner Script -->
+    <script src="js/cookie-consent.js"></script>
 </body>
 </html>

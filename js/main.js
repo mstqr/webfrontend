@@ -143,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const formData = {
                 email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
                 reason: document.getElementById('reason').value
             };
             

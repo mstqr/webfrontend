@@ -6,6 +6,8 @@
     <title>Join Waitlist</title>
     <meta name="theme-color" content="#007aff">
     <link rel="stylesheet" href="waitlist.css">
+    <!-- GDPR: Cookie Consent Banner Styles -->
+    <link rel="stylesheet" href="css/cookie-consent.css">
 </head>
 <body>
     <div class="waitlist-container">
@@ -14,6 +16,12 @@
         <form id="waitlistForm" autocomplete="off">
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" name="phone" required placeholder="e.g. 01010941494">
+            <div class="form-group gdpr-checkbox">
+                <input type="checkbox" id="gdprConsentWaitlist" name="gdprConsentWaitlist" required>
+                <label for="gdprConsentWaitlist">
+                    I agree to the processing of my data according to the <a href="privacy-policy.html" target="_blank">Privacy Policy</a>.
+                </label>
+            </div>
             <button type="submit">Join Waitlist</button>
         </form>
         <div id="message" aria-live="polite"></div>
@@ -25,5 +33,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="js/waitlist.js"></script>
+    <!-- GDPR: Cookie Consent Banner Script -->
+    <script src="js/cookie-consent.js"></script>
 </body>
 </html>
